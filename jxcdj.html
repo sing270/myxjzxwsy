@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进销存登记系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        accent: '#6366f1',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#06b6d4',
+                        light: '#f3f4f6',
+                        dark: '#1f2937',
+                        color1: '#850f1f',
+                        color2: "#069e64"
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+
+        async function saveRecordToGitHub(record) {
+            const token = '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'; 
+            const owner = 'sing270'; 
+            const repo = 'myxjzxwsy'; 
+            const path = 'records.json'; 
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                const sha = data.sha;
+
+                let existingRecords = [];
+                if (data.content) {
+                    const decodedContent = atob(data.content);
+                    existingRecords = JSON.parse(decodedContent);
+                }
+
+                existingRecords.push(record);
+
+                const newContent = JSON.stringify(existingRecords, null, 2);
+                const encodedContent = btoa(newContent);
+
+                const commitResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Add new record',
+                        content: encodedContent,
+                        sha: sha
+                    })
+                });
+
+                const commitData = await commitResponse.json();
+                console.log('Record saved to GitHub:', commitData);
+            } catch (error) {
+                console.error('Error saving record to GitHub:', error);
+            }
+        }
+
+        document.getElementById('reagentInfoForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const reagentName = document.getElementById('reagentName').value;
+            const reagentType = document.getElementById('reagentType').value;
+            const batchNumber = document.getElementById('batchNumber').value;
+            const productionDate = document.getElementById('productionDate').value;
+            const validityPeriod = document.getElementById('validityPeriod').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+
+            const record = {
+                reagentName,
+                reagentType,
+                batchNumber,
+                productionDate,
+                validityPeriod,
+                expiryDate
+            };
+
+            saveRecordToGitHub(record);
+        });
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .tab-active {
+                @apply bg-primary text-white border-primary;
+            }
+            .form-input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary;
+            }
+            .card-shadow {
+                @apply shadow-md hover:shadow-lg transition-shadow duration-300;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105;
+            }
+            .btn-danger {
+                @apply bg-danger hover:bg-danger/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105;
+            }
+            .btn-outline {
+                @apply border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300;
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl card-shadow">
+            <div class="text-center mb-8">
+                <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-color2 mb-2">蒙阴县旧寨乡卫生院<p>进销存登记系统</h1>
+            </div>
+            
+            <form id="loginForm" class="space-y-5">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fa fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="username" placeholder="用户名" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg form-input-focus outline-none transition-all duration-300" required>
+                </div>
+                
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fa fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password" placeholder="密码" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg form-input-focus outline-none transition-all duration-300" required>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <button type="button" id="registerBtn" class="text-primary hover:text-primary/80 font-medium transition-colors duration-300">
+                        <i class="fa fa-user-plus mr-1"></i> 注册
+                    </button>
+                    <button type="button" id="changePasswordBtn" class="text-primary hover:text-primary/80 font-medium transition-colors duration-300">
+                        <i class="fa fa-key mr-1"></i> 修改密码
+                    </button>
+                </div>
+                
+                <button type="submit" class="btn-primary w-full flex items-center justify-center">
+                    <i class="fa fa-sign-in mr-2"></i> 登录
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 opacity-0" id="registerModalContent">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">注册账号</h2>
+                <button id="closeRegisterModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label for="newUsername" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="newUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="newPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">确认密码</label>
+                    <input type="password" id="confirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" id="cancelRegister" class="btn-outline mr-2">取消</button>
+                    <button type="submit" class="btn-primary">注册</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 opacity-0" id="changePasswordModalContent">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">修改密码</h2>
+                <button id="closeChangePasswordModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="changePasswordForm" class="space-y-4">
+                <div>
+                    <label for="oldPassword" class="block text-sm font-medium text-gray-700 mb-1">当前密码</label>
+                    <input type="password" id="oldPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div>
+                    <label for="newPasswordChange" class="block text-sm font-medium text-gray-700 mb-1">新密码</label>
+                    <input type="password" id="newPasswordChange" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div>
+                    <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700 mb-1">确认新密码</label>
+                    <input type="password" id="confirmNewPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" id="cancelChangePassword" class="btn-outline mr-2">取消</button>
+                    <button type="submit" class="btn-primary">修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="mainPage" class="min-h-screen flex flex-col hidden">
+
+        <header class="bg-primary text-white shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa fa-clipboard-list text-xl"></i>
+                    <h1 class="text-xl font-bold">进销存登记系统</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="userInfo" class="flex items-center space-x-2">
+                        <i class="fa fa-user-circle"></i>
+                        <span id="currentUser">管理员</span>
+                    </div>
+                    <button id="logoutBtn" class="text-white hover:text-gray-200 transition-colors duration-300">
+                        <i class="fa fa-sign-out"></i> 退出
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <main class="flex-1 flex overflow-hidden">
+            <aside class="w-64 bg-white shadow-md flex-shrink-0 overflow-y-auto">
+                <div class="p-4">
+                    <nav class="space-y-1">
+                        <button class="tab-btn tab-active w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300" data-tab="reagentInfo">
+                            <i class="fa fa-plus-circle w-6 text-center mr-2"></i>
+                            <span>试剂信息</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="reagentLibrary">
+                            <i class="fa fa-database w-6 text-center mr-2"></i>
+                            <span>试剂信息库</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="stockIn">
+                            <i class="fa fa-sign-in w-6 text-center mr-2"></i>
+                            <span>入库登记</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="stockOut">
+                            <i class="fa fa-sign-out w-6 text-center mr-2"></i>
+                            <span>出库登记</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="biochemicalReagent">
+                            <i class="fa fa-flask w-6 text-center mr-2"></i>
+                            <span>生化试剂信息</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="immuneReagent">
+                            <i class="fa fa-medkit w-6 text-center mr-2"></i>
+                            <span>免疫试剂信息</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="clinicalReagent">
+                            <i class="fa fa-stethoscope w-6 text-center mr-2"></i>
+                            <span>临检试剂信息</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="consumables">
+                            <i class="fa fa-medkit w-6 text-center mr-2"></i>
+                            <span>耗材信息</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="recordSummary">
+                            <i class="fa fa-list-alt w-6 text-center mr-2"></i>
+                            <span>记录汇总</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="expiringReagent">
+                            <i class="fa fa-clock-o w-6 text-center mr-2"></i>
+                            <span>临期试剂</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="expiredReagent">
+                            <i class="fa fa-exclamation-triangle w-6 text-center mr-2"></i>
+                            <span>过期试剂</span>
+                        </button>
+                        <button class="tab-btn w-full text-left py-3 px-4 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-100" data-tab="expiredDisposal">
+                            <i class="fa fa-trash w-6 text-center mr-2"></i>
+                            <span>过期试剂处置</span>
+                        </button>
+                    </nav>
+                </div>
+            </aside>
+            
+            <div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <div id="tabContent" class="space-y-6">
+                    <div id="reagentInfo" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">试剂信息登记</h2>
+                        <form id="reagentInfoForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="reagentName" class="block text-sm font-medium text-gray-700 mb-1">名称</label>
+                                    <input type="text" id="reagentName" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="reagentType" class="block text-sm font-medium text-gray-700 mb-1">种类</label>
+                                    <select id="reagentType" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value=""></option>
+                                        <option value="生化">生化</option>
+                                        <option value="免疫">免疫</option>
+                                        <option value="临检">临检</option>
+                                        <option value="耗材">耗材</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="batchNumber" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="batchNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="productionDate" class="block text-sm font-medium text-gray-700 mb-1">生产日期</label>
+                                    <input type="date" id="productionDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="validityPeriod" class="block text-sm font-medium text-gray-700 mb-1">效期（月）</label>
+                                    <select id="validityPeriod" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value=""></option>
+                                        <option value="6">6</option>
+                                        <option value="12">12</option>
+                                        <option value="18">18</option>
+                                        <option value="24">24</option>
+                                        <option value="36">36</option>
+                                        <option value="48">48</option>
+                                        <option value="60">60</option>
+                                        <option value="72">72</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="expiryDate" class="block text-sm font-medium text-gray-700 mb-1">失效日期</label>
+                                    <input type="date" id="expiryDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" readonly>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="reset" class="btn-outline mr-2">重置</button>
+                                <button type="submit" class="btn-primary">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="reagentLibrary" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">试剂信息库</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxLibrary" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvLibrary" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="filterName" class="block text-sm font-medium text-gray-700 mb-1">名称</label>
+                                    <input type="text" id="filterName" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" placeholder="输入名称筛选">
+                                </div>
+                                <div>
+                                    <label for="filterType" class="block text-sm font-medium text-gray-700 mb-1">种类</label>
+                                    <select id="filterType" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value="">全部</option>
+                                        <option value="生化">生化</option>
+                                        <option value="免疫">免疫</option>
+                                        <option value="临检">临检</option>
+                                        <option value="耗材">耗材</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="filterBatch" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="filterBatch" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" placeholder="输入批号筛选">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <button id="applyFiltersLibrary" class="btn-primary">
+                                    <i class="fa fa-filter mr-1"></i> 应用筛选
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">种类</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">批号</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">生产日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">效期（月）</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">失效日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reagentLibraryTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="stockIn" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">入库登记</h2>
+                        <form id="stockInForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="stockInBatchNumber" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="stockInBatchNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockInQuantity" class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+                                    <input type="number" id="stockInQuantity" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockInDate" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                                    <input type="date" id="stockInDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockInTime" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+                                    <input type="time-local" id="stockInTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h3 class="font-medium text-gray-800 mb-3">试剂信息</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">名称</p>
+                                        <p id="stockInName" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">种类</p>
+                                        <p id="stockInType" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">生产日期</p>
+                                        <p id="stockInProductionDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">效期</p>
+                                        <p id="stockInValidityPeriod" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">失效日期</p>
+                                        <p id="stockInExpiryDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button type="reset" class="btn-outline mr-2">重置</button>
+                                <button type="submit" class="btn-primary">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="stockOut" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">出库登记</h2>
+                        <form id="stockOutForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="stockOutBatchNumber" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="stockOutBatchNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockOutQuantity" class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+                                    <input type="number" id="stockOutQuantity" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockOutDate" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                                    <input type="date" id="stockOutDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="stockOutTime" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+                                    <input type="time-local" id="stockOutTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h3 class="font-medium text-gray-800 mb-3">试剂信息</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">名称</p>
+                                        <p id="stockOutName" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">种类</p>
+                                        <p id="stockOutType" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">生产日期</p>
+                                        <p id="stockOutProductionDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">效期</p>
+                                        <p id="stockOutValidityPeriod" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">失效日期</p>
+                                        <p id="stockOutExpiryDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">当前库存</p>
+                                        <p id="stockOutCurrentStock" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button type="reset" class="btn-outline mr-2">重置</button>
+                                <button type="submit" class="btn-primary">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="biochemicalReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">生化试剂信息</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxBiochemical" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvBiochemical" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="biochemicalReagentTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="immuneReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">免疫试剂信息</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxImmune" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvImmune" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="immuneReagentTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="clinicalReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">临检试剂信息</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxClinical" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvClinical" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clinicalReagentTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="consumables" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">耗材信息</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxConsumables" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvConsumables" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="consumablesTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="recordSummary" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">记录汇总</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxSummary" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvSummary" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="filterNameSummary" class="block text-sm font-medium text-gray-700 mb-1">名称</label>
+                                    <input type="text" id="filterNameSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" placeholder="输入名称筛选">
+                                </div>
+                                <div>
+                                    <label for="filterTypeSummary" class="block text-sm font-medium text-gray-700 mb-1">种类</label>
+                                    <select id="filterTypeSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value="">全部</option>
+                                        <option value="生化">生化</option>
+                                        <option value="免疫">免疫</option>
+                                        <option value="临检">临检</option>
+                                        <option value="耗材">耗材</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="filterBatchSummary" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="filterBatchSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" placeholder="输入批号筛选">
+                                </div>
+                                <div>
+                                    <label for="filterStatusSummary" class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                                    <select id="filterStatusSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value="">全部</option>
+                                        <option value="入库">入库</option>
+                                        <option value="出库">出库</option>
+                                        <option value="过期处置">过期处置</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="filterDateSummary" class="block text-sm font-medium text-gray-700 mb-1">登记日期</label>
+                                    <input type="date" id="filterDateSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <button id="applyFiltersSummary" class="btn-primary">
+                                    <i class="fa fa-filter mr-1"></i> 应用筛选
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">种类</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">批号</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">生产日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">效期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">失效日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登记日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登记时间</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recordSummaryTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="expiringReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">临期试剂</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxExpiring" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvExpiring" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">失效日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余天数</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expiringReagentTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="expiredReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">过期试剂</h2>
+                            <div class="flex space-x-2">
+                                <button id="exportXlsxExpired" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-excel-o mr-1"></i> 导出XLSX
+                                </button>
+                                <button id="exportCsvExpired" class="btn-outline flex items-center">
+                                    <i class="fa fa-file-text-o mr-1"></i> 导出CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">失效日期</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">已过期天数</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expiredReagentTable" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="expiredDisposal" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">过期试剂处置</h2>
+                        <form id="expiredDisposalForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="disposalBatchNumber" class="block text-sm font-medium text-gray-700 mb-1">批号</label>
+                                    <input type="text" id="disposalBatchNumber" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="disposalQuantity" class="block text-sm font-medium text-gray-700 mb-1">数量</label>
+                                    <input type="number" id="disposalQuantity" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="disposalDate" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                                    <input type="date" id="disposalDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="disposalTime" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+                                    <input type="time-local" id="disposalTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus" required>
+                                </div>
+                                <div>
+                                    <label for="disposalMethod" class="block text-sm font-medium text-gray-700 mb-1">处置方式</label>
+                                    <select id="disposalMethod" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value="select"></option>
+                                        <option value="销毁">销毁</option>
+                                        <option value="供应商回收">供应商回收</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h3 class="font-medium text-gray-800 mb-3">试剂信息</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">名称</p>
+                                        <p id="disposalName" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">种类</p>
+                                        <p id="disposalType" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">生产日期</p>
+                                        <p id="disposalProductionDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">效期</p>
+                                        <p id="disposalValidityPeriod" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">失效日期</p>
+                                        <p id="disposalExpiryDate" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">当前库存</p>
+                                        <p id="disposalCurrentStock" class="font-medium text-gray-800">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button type="reset" class="btn-outline mr-2">重置</button>
+                                <button type="submit" class="btn-primary">保存</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="notification" class="fixed bottom-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-y-20 opacity-0 transition-all duration-500 z-50 flex items-start">
+        <div id="notificationIcon" class="mr-3 text-primary">
+            <i class="fa fa-info-circle text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h3 id="notificationTitle" class="font-medium text-gray-800">通知标题</h3>
+            <p id="notificationMessage" class="text-sm text-gray-600 mt-1">通知内容将显示在这里...</p>
+        </div>
+        <button id="closeNotification" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa fa-times"></i>
+        </button>
+    </div>
+    
+    <script>
+        let reagentData = [];
+        let stockRecord = [];
+        let users = [
+            { username: 'admin', password: 'admin123' }
+        ];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('stockInDate').valueAsDate = new Date();
+            document.getElementById('stockInTime').value = new Date().toTimeString().slice(0, 8);
+            document.getElementById('stockOutDate').valueAsDate = new Date();
+            document.getElementById('stockOutTime').value = new Date().toTimeString().slice(0, 8);
+            document.getElementById('disposalDate').valueAsDate = new Date();
+            document.getElementById('disposalTime').value = new Date().toTimeString().slice(0, 8);
+            document.getElementById('filterDateSummary').valueAsDate = new Date();
+            
+            initEventListeners();
+            
+            loadData();
+        });
+        
+        function initEventListeners() {
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                const user = users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainPage').classList.remove('hidden');
+                    document.getElementById('currentUser').textContent = `欢迎，${username}`;
+                    showNotification('success', '登录成功', `欢迎回来，${username}!`);
+                } else {
+                    showNotification('error', '登录失败', '用户名或密码错误');
+                }
+            });
+            
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                document.getElementById('mainPage').classList.add('hidden');
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('loginForm').reset();
+                showNotification('info', '已登出', '您已成功退出系统');
+            });
+            
+            document.getElementById('registerBtn').addEventListener('click', function() {
+                openModal('registerModal');
+            });
+            
+            document.getElementById('changePasswordBtn').addEventListener('click', function() {
+                openModal('changePasswordModal');
+            });
+            
+            document.getElementById('closeRegisterModal').addEventListener('click', function() {
+                closeModal('registerModal');
+            });
+            
+            document.getElementById('cancelRegister').addEventListener('click', function() {
+                closeModal('registerModal');
+            });
+            
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const newUsername = document.getElementById('newUsername').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (newPassword !== confirmPassword) {
+                    showNotification('error', '注册失败', '两次输入的密码不一致');
+                    return;
+                }
+                
+                if (users.some(u => u.username === newUsername)) {
+                    showNotification('error', '注册失败', '用户名已存在');
+                    return;
+                }
+                
+                users.push({ username: newUsername, password: newPassword });
+                saveData();
+                closeModal('registerModal');
+                showNotification('success', '注册成功', '您可以使用新账号登录了');
+            });
+            
+            document.getElementById('closeChangePasswordModal').addEventListener('click', function() {
+                closeModal('changePasswordModal');
+            });
+            
+            document.getElementById('cancelChangePassword').addEventListener('click', function() {
+                closeModal('changePasswordModal');
+            });
+            
+            document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const oldPassword = document.getElementById('oldPassword').value;
+                const newPassword = document.getElementById('newPasswordChange').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                
+                const userIndex = users.findIndex(u => u.username === username && u.password === oldPassword);
+                if (userIndex === -1) {
+                    showNotification('error', '修改失败', '当前密码不正确');
+                    return;
+                }
+                
+                if (newPassword !== confirmNewPassword) {
+                    showNotification('error', '修改失败', '两次输入的新密码不一致');
+                    return;
+                }
+                
+                users[userIndex].password = newPassword;
+                saveData();
+                closeModal('changePasswordModal');
+                showNotification('success', '修改成功', '密码已成功修改');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('tab-active');
+                        b.classList.add('hover:bg-gray-100');
+                    });
+                    
+                    this.classList.add('tab-active');
+                    this.classList.remove('hover:bg-gray-100');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.remove('hidden');
+                    
+                    updateTables();
+                });
+            });
+            
+            document.getElementById('reagentInfoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('reagentName').value;
+                const type = document.getElementById('reagentType').value;
+                const batchNumber = document.getElementById('batchNumber').value;
+                const productionDate = document.getElementById('productionDate').value;
+                const validityPeriod = document.getElementById('validityPeriod').value;
+                const expiryDate = document.getElementById('expiryDate').value;
+                
+                if (reagentData.some(item => item.batchNumber === batchNumber)) {
+                    showNotification('error', '保存失败', '该批号的试剂已存在');
+                    return;
+                }
+                
+                const newReagent = {
+                    id: reagentData.length + 1,
+                    name,
+                    type,
+                    batchNumber,
+                    productionDate,
+                    validityPeriod,
+                    expiryDate
+                };
+                
+                reagentData.push(newReagent);
+                saveData();
+                this.reset();
+                showNotification('success', '保存成功', '试剂信息已成功添加');
+                
+                updateReagentLibraryTable();
+            });
+            
+            document.getElementById('productionDate').addEventListener('change', calculateExpiryDate);
+            document.getElementById('validityPeriod').addEventListener('change', calculateExpiryDate);
+            
+            document.getElementById('stockInBatchNumber').addEventListener('input', function() {
+                const batchNumber = this.value;
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                
+                if (reagent) {
+                    document.getElementById('stockInName').textContent = reagent.name;
+                    document.getElementById('stockInType').textContent = reagent.type;
+                    document.getElementById('stockInProductionDate').textContent = reagent.productionDate;
+                    document.getElementById('stockInValidityPeriod').textContent = `${reagent.validityPeriod} 月`;
+                    document.getElementById('stockInExpiryDate').textContent = reagent.expiryDate;
+                } else {
+                    document.getElementById('stockInName').textContent = '-';
+                    document.getElementById('stockInType').textContent = '-';
+                    document.getElementById('stockInProductionDate').textContent = '-';
+                    document.getElementById('stockInValidityPeriod').textContent = '-';
+                    document.getElementById('stockInExpiryDate').textContent = '-';
+                }
+            });
+            
+            document.getElementById('stockInForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const batchNumber = document.getElementById('stockInBatchNumber').value;
+                const quantity = parseInt(document.getElementById('stockInQuantity').value);
+                const date = document.getElementById('stockInDate').value;
+                const time = document.getElementById('stockInTime').value;
+                
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                if (!reagent) {
+                    showNotification('error', '入库失败', '未找到该批号的试剂');
+                    return;
+                }
+                
+                const newRecord = {
+                    id: stockRecord.length + 1,
+                    name: reagent.name,
+                    type: reagent.type,
+                    batchNumber: reagent.batchNumber,
+                    quantity,
+                    productionDate: reagent.productionDate,
+                    validityPeriod: reagent.validityPeriod,
+                    expiryDate: reagent.expiryDate,
+                    date,
+                    time,
+                    status: '入库'
+                };
+                
+                stockRecord.push(newRecord);
+                saveData();
+                this.reset();
+                showNotification('success', '入库成功', '入库记录已保存');
+                
+                document.getElementById('stockInName').textContent = '-';
+                document.getElementById('stockInType').textContent = '-';
+                document.getElementById('stockInProductionDate').textContent = '-';
+                document.getElementById('stockInValidityPeriod').textContent = '-';
+                document.getElementById('stockInExpiryDate').textContent = '-';
+
+                document.getElementById('stockInDate').valueAsDate = new Date();
+                document.getElementById('stockInTime').value = new Date().toTimeString().slice(0, 8);
+
+                updateTables();
+            });
+            
+            document.getElementById('stockOutBatchNumber').addEventListener('input', function() {
+                const batchNumber = this.value;
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                
+                if (reagent) {
+                    document.getElementById('stockOutName').textContent = reagent.name;
+                    document.getElementById('stockOutType').textContent = reagent.type;
+                    document.getElementById('stockOutProductionDate').textContent = reagent.productionDate;
+                    document.getElementById('stockOutValidityPeriod').textContent = `${reagent.validityPeriod} 月`;
+                    document.getElementById('stockOutExpiryDate').textContent = reagent.expiryDate;
+                    
+                    const currentStock = calculateCurrentStock(batchNumber);
+                    document.getElementById('stockOutCurrentStock').textContent = currentStock;
+                } else {
+                    document.getElementById('stockOutName').textContent = '-';
+                    document.getElementById('stockOutType').textContent = '-';
+                    document.getElementById('stockOutProductionDate').textContent = '-';
+                    document.getElementById('stockOutValidityPeriod').textContent = '-';
+                    document.getElementById('stockOutExpiryDate').textContent = '-';
+                    document.getElementById('stockOutCurrentStock').textContent = '-';
+                }
+            });
+            
+            document.getElementById('stockOutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const batchNumber = document.getElementById('stockOutBatchNumber').value;
+                const quantity = parseInt(document.getElementById('stockOutQuantity').value);
+                const date = document.getElementById('stockOutDate').value;
+                const time = document.getElementById('stockOutTime').value;
+                
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                if (!reagent) {
+                    showNotification('error', '出库失败', '未找到该批号的试剂');
+                    return;
+                }
+                
+                const currentStock = calculateCurrentStock(batchNumber);
+                if (quantity > currentStock) {
+                    showNotification('error', '出库失败', `库存不足，当前库存: ${currentStock}`);
+                    return;
+                }
+                
+                const newRecord = {
+                    id: stockRecord.length + 1,
+                    name: reagent.name,
+                    type: reagent.type,
+                    batchNumber: reagent.batchNumber,
+                    quantity: -quantity, 
+                    productionDate: reagent.productionDate,
+                    validityPeriod: reagent.validityPeriod,
+                    expiryDate: reagent.expiryDate,
+                    date,
+                    time,
+                    status: '出库'
+                };
+                
+                stockRecord.push(newRecord);
+                saveData();
+                this.reset();
+                showNotification('success', '出库成功', '出库记录已保存');
+                
+                document.getElementById('stockOutName').textContent = '-';
+                document.getElementById('stockOutType').textContent = '-';
+                document.getElementById('stockOutProductionDate').textContent = '-';
+                document.getElementById('stockOutValidityPeriod').textContent = '-';
+                document.getElementById('stockOutExpiryDate').textContent = '-';
+                document.getElementById('stockOutCurrentStock').textContent = '-';
+                
+                document.getElementById('stockOutDate').valueAsDate = new Date();
+                document.getElementById('stockOutTime').value = new Date().toTimeString().slice(0, 8);
+                
+                updateTables();
+            });
+            
+            document.getElementById('disposalBatchNumber').addEventListener('input', function() {
+                const batchNumber = this.value;
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                
+                if (reagent) {
+                    document.getElementById('disposalName').textContent = reagent.name;
+                    document.getElementById('disposalType').textContent = reagent.type;
+                    document.getElementById('disposalProductionDate').textContent = reagent.productionDate;
+                    document.getElementById('disposalValidityPeriod').textContent = `${reagent.validityPeriod} 月`;
+                    document.getElementById('disposalExpiryDate').textContent = reagent.expiryDate;
+                    
+                    const currentStock = calculateCurrentStock(batchNumber);
+                    document.getElementById('disposalCurrentStock').textContent = currentStock;
+                } else {
+                    document.getElementById('disposalName').textContent = '-';
+                    document.getElementById('disposalType').textContent = '-';
+                    document.getElementById('disposalProductionDate').textContent = '-';
+                    document.getElementById('disposalValidityPeriod').textContent = '-';
+                    document.getElementById('disposalExpiryDate').textContent = '-';
+                    document.getElementById('disposalCurrentStock').textContent = '-';
+                }
+            });
+            
+            document.getElementById('expiredDisposalForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const batchNumber = document.getElementById('disposalBatchNumber').value;
+                const quantity = parseInt(document.getElementById('disposalQuantity').value);
+                const date = document.getElementById('disposalDate').value;
+                const time = document.getElementById('disposalTime').value;
+                const method = document.getElementById('disposalMethod').value;
+                
+                const reagent = reagentData.find(item => item.batchNumber === batchNumber);
+                if (!reagent) {
+                    showNotification('error', '处置失败', '未找到该批号的试剂');
+                    return;
+                }
+                
+                const currentStock = calculateCurrentStock(batchNumber);
+                if (quantity > currentStock) {
+                    showNotification('error', '处置失败', `库存不足，当前库存: ${currentStock}`);
+                    return;
+                }
+                
+                const today = new Date();
+                const expiryDate = new Date(reagent.expiryDate);
+                if (expiryDate > today) {
+                    showNotification('error', '处置失败', '该试剂尚未过期');
+                    return;
+                }
+                
+                const newRecord = {
+                    id: stockRecord.length + 1,
+                    name: reagent.name,
+                    type: reagent.type,
+                    batchNumber: reagent.batchNumber,
+                    quantity: -quantity, 
+                    productionDate: reagent.productionDate,
+                    validityPeriod: reagent.validityPeriod,
+                    expiryDate: reagent.expiryDate,
+                    date,
+                    time,
+                    status: '过期处置',
+                    method
+                };
+                
+                stockRecord.push(newRecord);
+                saveData();
+                this.reset();
+                showNotification('success', '处置成功', '过期试剂处置记录已保存');
+                
+                document.getElementById('disposalName').textContent = '-';
+                document.getElementById('disposalType').textContent = '-';
+                document.getElementById('disposalProductionDate').textContent = '-';
+                document.getElementById('disposalValidityPeriod').textContent = '-';
+                document.getElementById('disposalExpiryDate').textContent = '-';
+                document.getElementById('disposalCurrentStock').textContent = '-';
+
+                document.getElementById('disposalDate').valueAsDate = new Date();
+                document.getElementById('disposalTime').value = new Date().toTimeString().slice(0, 8);
+                
+                updateTables();
+            });
+            
+            document.getElementById('applyFiltersLibrary').addEventListener('click', updateReagentLibraryTable);
+            document.getElementById('applyFiltersSummary').addEventListener('click', updateRecordSummaryTable);
+            
+            document.getElementById('exportXlsxLibrary').addEventListener('click', function() {
+                exportToExcel(getFilteredReagentData(), '试剂信息库');
+            });
+            
+            document.getElementById('exportCsvLibrary').addEventListener('click', function() {
+                exportToCsv(getFilteredReagentData(), '试剂信息库');
+            });
+            
+            document.getElementById('exportXlsxSummary').addEventListener('click', function() {
+                exportToExcel(getFilteredStockRecord(), '记录汇总');
+            });
+            
+            document.getElementById('exportCsvSummary').addEventListener('click', function() {
+                exportToCsv(getFilteredStockRecord(), '记录汇总');
+            });
+            
+            document.getElementById('exportXlsxBiochemical').addEventListener('click', function() {
+                exportToExcel(getCategoryStockData('生化'), '生化试剂信息');
+            });
+            
+            document.getElementById('exportCsvBiochemical').addEventListener('click', function() {
+                exportToCsv(getCategoryStockData('生化'), '生化试剂信息');
+            });
+            
+            document.getElementById('exportXlsxImmune').addEventListener('click', function() {
+                exportToExcel(getCategoryStockData('免疫'), '免疫试剂信息');
+            });
+            
+            document.getElementById('exportCsvImmune').addEventListener('click', function() {
+                exportToCsv(getCategoryStockData('免疫'), '免疫试剂信息');
+            });
+            
+            document.getElementById('exportXlsxClinical').addEventListener('click', function() {
+                exportToExcel(getCategoryStockData('临检'), '临检试剂信息');
+            });
+            
+            document.getElementById('exportCsvClinical').addEventListener('click', function() {
+                exportToCsv(getCategoryStockData('临检'), '临检试剂信息');
+            });
+            
+            document.getElementById('exportXlsxConsumables').addEventListener('click', function() {
+                exportToExcel(getCategoryStockData('耗材'), '耗材信息');
+            });
+            
+            document.getElementById('exportCsvConsumables').addEventListener('click', function() {
+                exportToCsv(getCategoryStockData('耗材'), '耗材信息');
+            });
+            
+            document.getElementById('exportXlsxExpiring').addEventListener('click', function() {
+                exportToExcel(getExpiringReagents(), '临期试剂');
+            });
+            
+            document.getElementById('exportCsvExpiring').addEventListener('click', function() {
+                exportToCsv(getExpiringReagents(), '临期试剂');
+            });
+            
+            document.getElementById('exportXlsxExpired').addEventListener('click', function() {
+                exportToExcel(getExpiredReagents(), '过期试剂');
+            });
+            
+            document.getElementById('exportCsvExpired').addEventListener('click', function() {
+                exportToCsv(getExpiredReagents(), '过期试剂');
+            });
+            
+            document.getElementById('closeNotification').addEventListener('click', function() {
+                hideNotification();
+            });
+        }
+        
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = document.getElementById(`${modalId}Content`);
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = document.getElementById(`${modalId}Content`);
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        function calculateExpiryDate() {
+            const productionDate = document.getElementById('productionDate').value;
+            const validityPeriod = document.getElementById('validityPeriod').value;
+            
+            if (productionDate && validityPeriod) {
+                const date = new Date(productionDate);
+                date.setMonth(date.getMonth() + parseInt(validityPeriod));
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate() - 1).padStart(2, '0');
+                
+                document.getElementById('expiryDate').value = `${year}-${month}-${day}`;
+            }
+        }
+        
+        function calculateCurrentStock(batchNumber) {
+            const records = stockRecord.filter(record => record.batchNumber === batchNumber);
+            return records.reduce((total, record) => total + record.quantity, 0);
+        }
+        
+        function getCategoryStockData(category) {
+            const reagents = reagentData.filter(item => item.type === category);
+            const uniqueNames = [...new Set(reagents.map(item => item.name))];
+            
+            return uniqueNames.map((name, index) => {
+                const batches = reagents.filter(item => item.name === name);
+                const totalStock = batches.reduce((total, batch) => {
+                    return total + calculateCurrentStock(batch.batchNumber);
+                }, 0);
+                
+                return {
+                    id: index + 1,
+                    name,
+                    remainingQuantity: totalStock
+                };
+            });
+        }
+        
+        function getExpiringReagents() {
+            const today = new Date();
+            const expiringReagents = [];
+            
+            reagentData.forEach(reagent => {
+                const expiryDate = new Date(reagent.expiryDate);
+                const timeDiff = expiryDate.getTime() - today.getTime();
+                const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                if (daysLeft > 0 && daysLeft <= 15) {
+                    const currentStock = calculateCurrentStock(reagent.batchNumber);
+                    if (currentStock > 0) {
+                        expiringReagents.push({
+                            id: expiringReagents.length + 1,
+                            name: reagent.name,
+                            remainingQuantity: currentStock,
+                            expiryDate: reagent.expiryDate,
+                            daysLeft
+                        });
+                    }
+                }
+            });
+            
+            return expiringReagents;
+        }
+        
+        function getExpiredReagents() {
+            const today = new Date();
+            const expiredReagents = [];
+            
+            reagentData.forEach(reagent => {
+                const expiryDate = new Date(reagent.expiryDate);
+                const timeDiff = today.getTime() - expiryDate.getTime();
+                const daysExpired = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                if (daysExpired > 0) {
+                    const currentStock = calculateCurrentStock(reagent.batchNumber);
+                    if (currentStock > 0) {
+                        expiredReagents.push({
+                            id: expiredReagents.length + 1,
+                            name: reagent.name,
+                            remainingQuantity: currentStock,
+                            expiryDate: reagent.expiryDate,
+                            daysExpired
+                        });
+                    }
+                }
+            });
+            
+            return expiredReagents;
+        }
+        
+        function getFilteredReagentData() {
+            const filterName = document.getElementById('filterName').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            const filterBatch = document.getElementById('filterBatch').value.toLowerCase();
+            
+            return reagentData.filter(item => {
+                return (item.name.toLowerCase().includes(filterName) || !filterName) &&
+                       (item.type === filterType || !filterType) &&
+                       (item.batchNumber.toLowerCase().includes(filterBatch) || !filterBatch);
+            });
+        }
+        
+        function getFilteredStockRecord() {
+            const filterName = document.getElementById('filterNameSummary').value.toLowerCase();
+            const filterType = document.getElementById('filterTypeSummary').value;
+            const filterBatch = document.getElementById('filterBatchSummary').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatusSummary').value;
+            const filterDate = document.getElementById('filterDateSummary').value;
+            
+            return stockRecord.filter(item => {
+                return (item.name.toLowerCase().includes(filterName) || !filterName) &&
+                       (item.type === filterType || !filterType) &&
+                       (item.batchNumber.toLowerCase().includes(filterBatch) || !filterBatch) &&
+                       (item.status === filterStatus || !filterStatus) &&
+                       (item.date === filterDate || !filterDate);
+            });
+        }
+        
+        function updateTables() {
+            updateReagentLibraryTable();
+            updateRecordSummaryTable();
+            updateCategoryTables();
+            updateExpiryTables();
+        }
+        
+        function updateReagentLibraryTable() {
+            const tableBody = document.getElementById('reagentLibraryTable');
+            const filteredData = getFilteredReagentData();
+            
+            tableBody.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">没有找到匹配的记录</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.batchNumber}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.productionDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.validityPeriod} 月</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.expiryDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button class="text-primary hover:text-primary/80 transition-colors delete-reagent" data-id="${item.id}">
+                            <i class="fa fa-trash"></i> 删除
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.querySelectorAll('.delete-reagent').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deleteReagent(id);
+                });
+            });
+        }
+        
+        function deleteReagent(id) {
+            if (confirm('确定要删除这条试剂信息吗？')) {
+                const hasRecords = stockRecord.some(record => record.batchNumber === reagentData[id - 1].batchNumber);
+                
+                if (hasRecords) {
+                    showNotification('error', '删除失败', '该试剂已存在相关记录，无法删除');
+                    return;
+                }
+                
+                reagentData.splice(id - 1, 1);
+                reagentData.forEach((item, index) => {
+                    item.id = index + 1;
+                });
+                saveData();
+                updateReagentLibraryTable();
+                showNotification('success', '删除成功', '试剂信息已删除');
+            }
+        }
+        
+        function updateRecordSummaryTable() {
+            const tableBody = document.getElementById('recordSummaryTable');
+            const filteredData = getFilteredStockRecord();
+            
+            tableBody.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="px-6 py-4 text-center text-gray-500">没有找到匹配的记录</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const sortedData = [...filteredData].sort((a, b) => {
+                if (a.date === b.date) {
+                    return a.time.localeCompare(b.time);
+                }
+                return a.date.localeCompare(b.date);
+            });
+            
+            sortedData.forEach((item, index) => {
+                item.id = index + 1;
+            });
+            
+            sortedData.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                let statusClass = '';
+                if (item.status === '入库') {
+                    statusClass = 'text-green-600';
+                } else if (item.status === '出库') {
+                    statusClass = 'text-red-600';
+                } else if (item.status === '过期处置') {
+                    statusClass = 'text-orange-600';
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.batchNumber}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.quantity > 0 ? '+' + item.quantity : item.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.productionDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.validityPeriod} 月</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.expiryDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.time}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${item.status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button class="text-primary hover:text-primary/80 transition-colors delete-record" data-id="${item.id}">
+                            <i class="fa fa-trash"></i> 删除
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.querySelectorAll('.delete-record').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deleteRecord(id);
+                });
+            });
+        }
+        
+        function deleteRecord(id) {
+            if (confirm('确定要删除这条记录吗？')) {
+                stockRecord.splice(id - 1, 1);
+                stockRecord.forEach((item, index) => {
+                    item.id = index + 1;
+                });
+                saveData();
+                updateRecordSummaryTable();
+                updateCategoryTables();
+                updateExpiryTables();
+                showNotification('success', '删除成功', '记录已删除');
+            }
+        }
+        
+        function updateCategoryTables() {
+            updateCategoryTable('生化', 'biochemicalReagentTable');
+            updateCategoryTable('免疫', 'immuneReagentTable');
+            updateCategoryTable('临检', 'clinicalReagentTable');
+            updateCategoryTable('耗材', 'consumablesTable');
+        }
+        
+        function updateCategoryTable(category, tableId) {
+            const tableBody = document.getElementById(tableId);
+            const stockData = getCategoryStockData(category);
+            
+            tableBody.innerHTML = '';
+            
+            if (stockData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">没有找到匹配的记录</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            stockData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                let quantityClass = 'text-gray-900';
+                if (item.remainingQuantity <= 0) {
+                    quantityClass = 'text-red-600';
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${quantityClass}">${item.remainingQuantity}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function updateExpiryTables() {
+            updateExpiringReagentTable();
+            updateExpiredReagentTable();
+        }
+        
+        function updateExpiringReagentTable() {
+            const tableBody = document.getElementById('expiringReagentTable');
+            const expiringReagents = getExpiringReagents();
+            
+            tableBody.innerHTML = '';
+            
+            if (expiringReagents.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">没有找到匹配的记录</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            expiringReagents.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                let daysLeftClass = 'text-yellow-600';
+                if (item.daysLeft <= 7) {
+                    daysLeftClass = 'text-red-600';
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.remainingQuantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.expiryDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${daysLeftClass}">${item.daysLeft} 天</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function updateExpiredReagentTable() {
+            const tableBody = document.getElementById('expiredReagentTable');
+            const expiredReagents = getExpiredReagents();
+            
+            tableBody.innerHTML = '';
+            
+            if (expiredReagents.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">没有找到匹配的记录</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            expiredReagents.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.remainingQuantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.expiryDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${item.daysExpired} 天</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function exportToExcel(data, sheetName) {
+            if (data.length === 0) {
+                showNotification('error', '导出失败', '没有数据可导出');
+                return;
+            }
+            
+            const ws_data = [];
+            
+            if (sheetName === '试剂信息库') {
+                ws_data.push(['ID', '名称', '种类', '批号', '生产日期', '效期（月）', '失效日期']);
+                data.forEach(item => {
+                    ws_data.push([item.id, item.name, item.type, item.batchNumber, item.productionDate, item.validityPeriod, item.expiryDate]);
+                });
+            } else if (sheetName === '记录汇总') {
+                ws_data.push(['ID', '名称', '种类', '批号', '数量', '生产日期', '效期（月）', '失效日期', '登记日期', '登记时间', '状态']);
+                data.forEach(item => {
+                    ws_data.push([item.id, item.name, item.type, item.batchNumber, item.quantity, item.productionDate, item.validityPeriod, item.expiryDate, item.date, item.time, item.status]);
+                });
+            } else if (sheetName === '临期试剂') {
+                ws_data.push(['ID', '名称', '剩余数量', '失效日期', '剩余天数']);
+                data.forEach(item => {
+                    ws_data.push([item.id, item.name, item.remainingQuantity, item.expiryDate, item.daysLeft]);
+                });
+            } else if (sheetName === '过期试剂') {
+                ws_data.push(['ID', '名称', '剩余数量', '失效日期', '已过期天数']);
+                data.forEach(item => {
+                    ws_data.push([item.id, item.name, item.remainingQuantity, item.expiryDate, item.daysExpired]);
+                });
+            } else {
+                ws_data.push(['ID', '名称', '剩余数量']);
+                data.forEach(item => {
+                    ws_data.push([item.id, item.name, item.remainingQuantity]);
+                });
+            }
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            XLSX.writeFile(wb, `${sheetName}.xlsx`);
+            
+            showNotification('success', '导出成功', `已成功导出 ${sheetName} 数据`);
+        }
+        
+        function exportToCsv(data, fileName) {
+            if (data.length === 0) {
+                showNotification('error', '导出失败', '没有数据可导出');
+                return;
+            }
+            
+            let csvContent = '';
+            
+            if (fileName === '试剂信息库') {
+                csvContent += 'ID,名称,种类,批号,生产日期,效期（月）,失效日期\n';
+                data.forEach(item => {
+                    csvContent += `${item.id},${item.name},${item.type},${item.batchNumber},${item.productionDate},${item.validityPeriod},${item.expiryDate}\n`;
+                });
+            } else if (fileName === '记录汇总') {
+                csvContent += 'ID,名称,种类,批号,数量,生产日期,效期（月）,失效日期,登记日期,登记时间,状态\n';
+                data.forEach(item => {
+                    csvContent += `${item.id},${item.name},${item.type},${item.batchNumber},${item.quantity},${item.productionDate},${item.validityPeriod},${item.expiryDate},${item.date},${item.time},${item.status}\n`;
+                });
+            } else if (fileName === '临期试剂') {
+                csvContent += 'ID,名称,剩余数量,失效日期,剩余天数\n';
+                data.forEach(item => {
+                    csvContent += `${item.id},${item.name},${item.remainingQuantity},${item.expiryDate},${item.daysLeft}\n`;
+                });
+            } else if (fileName === '过期试剂') {
+                csvContent += 'ID,名称,剩余数量,失效日期,已过期天数\n';
+                data.forEach(item => {
+                    csvContent += `${item.id},${item.name},${item.remainingQuantity},${item.expiryDate},${item.daysExpired}\n`;
+                });
+            } else {
+                csvContent += 'ID,名称,剩余数量\n';
+                data.forEach(item => {
+                    csvContent += `${item.id},${item.name},${item.remainingQuantity}\n`;
+                });
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${fileName}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('success', '导出成功', `已成功导出 ${fileName} 数据`);
+        }
+        
+        function showNotification(type, title, message) {
+            const notification = document.getElementById('notification');
+            const notificationTitle = document.getElementById('notificationTitle');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const notificationIcon = document.getElementById('notificationIcon');
+            
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            notificationIcon.className = 'mr-3';
+            if (type === 'success') {
+                notificationIcon.classList.add('text-green-500', 'fa', 'fa-check-circle', 'text-xl');
+            } else if (type === 'error') {
+                notificationIcon.classList.add('text-red-500', 'fa', 'fa-exclamation-circle', 'text-xl');
+            } else if (type === 'warning') {
+                notificationIcon.classList.add('text-yellow-500', 'fa', 'fa-exclamation-triangle', 'text-xl');
+            } else {
+                notificationIcon.classList.add('text-blue-500', 'fa', 'fa-info-circle', 'text-xl');
+            }
+            
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(hideNotification, 3000);
+        }
+        
+        function hideNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('translate-y-0', 'opacity-100');
+            notification.classList.add('translate-y-20', 'opacity-0');
+        }
+        
+        function saveData() {
+            localStorage.setItem('reagentData', JSON.stringify(reagentData));
+            localStorage.setItem('stockRecord', JSON.stringify(stockRecord));
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+        
+        function loadData() {
+            const savedReagentData = localStorage.getItem('reagentData');
+            const savedStockRecord = localStorage.getItem('stockRecord');
+            const savedUsers = localStorage.getItem('users');
+            
+            if (savedReagentData) {
+                reagentData = JSON.parse(savedReagentData);
+            }
+            
+            if (savedStockRecord) {
+                stockRecord = JSON.parse(savedStockRecord);
+            }
+            
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            }
+            
+            updateTables();
+        }
+
+        window.addEventListener('beforeunload', function () {
+            localStorage.setItem('activeTab', document.querySelector('.tab-active').dataset.tab);
+        });
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            loadData();
+            initializeEventListeners();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginPage = document.getElementById('loginPage');
+            const mainPage = document.getElementById('mainPage');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                loginPage.style.display = 'none';
+                mainPage.style.display = 'flex';
+            }else{
+                loginPage.style.display = 'flex';
+                mainPage.style.display = 'none';
+            }
+
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                localStorage.setItem('isLoggedIn', 'true');
+                loginPage.style.display = 'none';
+                mainPage.style.display = 'flex';
+            });
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('isLoggedIn');
+                document.getElementById('mainPage').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'flex';
+            });
+        
+            const activeTab = localStorage.getItem('activeTab');
+            if (activeTab) {
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                const tabContents = document.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    if (button.dataset.tab === activeTab) {
+                        button.classList.add('tab-active');
+                    } else {
+                        button.classList.remove('tab-active');
+                    }
+                });
+
+                tabContents.forEach(content => {
+                    if (content.id === activeTab) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            }
+
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const tabId = this.dataset.tab;
+                    localStorage.setItem('activeTab', tabId);
+
+                    tabButtons.forEach(btn => {
+                        if (btn.dataset.tab === tabId) {
+                            btn.classList.add('tab-active');
+                        } else {
+                            btn.classList.remove('tab-active');
+                        }
+                    });
+
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+    
