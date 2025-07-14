@@ -44,6 +44,11 @@
                         Authorization: `Bearer ${token}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
                 const sha = data.sha;
 
@@ -70,6 +75,10 @@
                         sha: sha
                     })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const commitData = await commitResponse.json();
                 console.log('Record saved to GitHub:', commitData);
@@ -1008,61 +1017,41 @@
                     updateTables();
                 });
             });
-            
-            document.getElementById('reagentInfoForm').addEventListener('submit', async function(event) {
-                event.preventDefault();
 
-                const reagentName = document.getElementById('reagentName').value;
-                const reagentType = document.getElementById('reagentType').value;
+            // 试剂信息表单提交
+            document.getElementById('reagentInfoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('reagentName').value;
+                const type = document.getElementById('reagentType').value;
                 const batchNumber = document.getElementById('batchNumber').value;
                 const productionDate = document.getElementById('productionDate').value;
                 const validityPeriod = document.getElementById('validityPeriod').value;
                 const expiryDate = document.getElementById('expiryDate').value;
-
-                try {
-                    // 获取 GitHub 仓库中的现有记录
-                    const token = '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'; 
-                    const owner = 'sing270'; 
-                    const repo = 'myxjzxwsy'; 
-                    const path = 'records.json'; 
-
-                    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                    const data = await response.json();
-                    let existingRecords = [];
-                    if (data.content) {
-                        const decodedContent = atob(data.content);
-                        existingRecords = JSON.parse(decodedContent);
-                    }
-
-                    // 检查批号是否已存在
-                    if (existingRecords.some(item => item.batchNumber === batchNumber)) {
-                        showNotification('error', '保存失败', '该批号的试剂已存在');
-                        return;
-                    }
-
-                    const record = {
-                        reagentName,
-                        reagentType,
-                        batchNumber,
-                        productionDate,
-                        validityPeriod,
-                        expiryDate
-                    };
-
-                    // 保存记录到 GitHub
-                    await saveRecordToGitHub(record);
-
-                    this.reset();
-                    showNotification('success', '保存成功', '试剂信息已成功添加');
-                    updateReagentLibraryTable();
-                } catch (error) {
-                    console.error('Error saving record:', error);
-                    showNotification('error', '保存失败', '保存记录时出现错误');
+                
+                // 检查是否已存在相同批号的试剂
+                if (reagentData.some(item => item.batchNumber === batchNumber)) {
+                    showNotification('error', '保存失败', '该批号的试剂已存在');
+                    return;
                 }
+                
+                // 添加新试剂
+                const newReagent = {
+                    id: reagentData.length + 1,
+                    name,
+                    type,
+                    batchNumber,
+                    productionDate,
+                    validityPeriod,
+                    expiryDate
+                };
+                
+                reagentData.push(newReagent);
+                saveData();
+                this.reset();
+                showNotification('success', '保存成功', '试剂信息已成功添加');
+                
+                // 更新试剂信息库表格
+                updateReagentLibraryTable();
             });
             
             document.getElementById('productionDate').addEventListener('change', calculateExpiryDate);
@@ -2002,4 +1991,3 @@
     </script>
 </body>
 </html>
-    
