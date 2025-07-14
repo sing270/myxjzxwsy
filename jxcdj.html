@@ -21,7 +21,9 @@
                         warning: '#f59e0b',
                         info: '#06b6d4',
                         light: '#f3f4f6',
-                        dark: '#1f2937'
+                        dark: '#1f2937',
+                        color1: '#850f1f',
+                        color2: "#069e64"
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -68,12 +70,10 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- 登录界面 -->
     <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl card-shadow">
             <div class="text-center mb-8">
-                <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-2">进销存登记系统</h1>
-                <p class="text-gray-500">请登录以继续</p>
+                <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-color2 mb-2">蒙阴县旧寨乡卫生院<p>进销存登记系统</h1>
             </div>
             
             <form id="loginForm" class="space-y-5">
@@ -107,7 +107,6 @@
         </div>
     </div>
     
-    <!-- 注册模态框 -->
     <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden fade-in">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 opacity-0" id="registerModalContent">
             <div class="flex justify-between items-center mb-4">
@@ -137,7 +136,6 @@
         </div>
     </div>
     
-    <!-- 修改密码模态框 -->
     <div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden fade-in">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 opacity-0" id="changePasswordModalContent">
             <div class="flex justify-between items-center mb-4">
@@ -167,9 +165,8 @@
         </div>
     </div>
     
-    <!-- 主界面 -->
     <div id="mainPage" class="min-h-screen flex flex-col hidden">
-        <!-- 顶部导航栏 -->
+
         <header class="bg-primary text-white shadow-md">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
@@ -188,9 +185,7 @@
             </div>
         </header>
         
-        <!-- 主内容区 -->
         <main class="flex-1 flex overflow-hidden">
-            <!-- 侧边栏标签页导航 -->
             <aside class="w-64 bg-white shadow-md flex-shrink-0 overflow-y-auto">
                 <div class="p-4">
                     <nav class="space-y-1">
@@ -246,10 +241,8 @@
                 </div>
             </aside>
             
-            <!-- 标签页内容区 -->
             <div class="flex-1 overflow-y-auto bg-gray-50 p-6">
                 <div id="tabContent" class="space-y-6">
-                    <!-- 试剂信息标签页 -->
                     <div id="reagentInfo" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in">
                         <h2 class="text-2xl font-bold text-gray-800 mb-6">试剂信息登记</h2>
                         <form id="reagentInfoForm" class="space-y-6">
@@ -261,6 +254,7 @@
                                 <div>
                                     <label for="reagentType" class="block text-sm font-medium text-gray-700 mb-1">种类</label>
                                     <select id="reagentType" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value=""></option>
                                         <option value="生化">生化</option>
                                         <option value="免疫">免疫</option>
                                         <option value="临检">临检</option>
@@ -278,6 +272,7 @@
                                 <div>
                                     <label for="validityPeriod" class="block text-sm font-medium text-gray-700 mb-1">效期（月）</label>
                                     <select id="validityPeriod" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
+                                        <option value=""></option>
                                         <option value="6">6</option>
                                         <option value="12">12</option>
                                         <option value="18">18</option>
@@ -300,7 +295,6 @@
                         </form>
                     </div>
                     
-                    <!-- 试剂信息库标签页 -->
                     <div id="reagentLibrary" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">试剂信息库</h2>
@@ -357,13 +351,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="reagentLibraryTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 入库登记标签页 -->
                     <div id="stockIn" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <h2 class="text-2xl font-bold text-gray-800 mb-6">入库登记</h2>
                         <form id="stockInForm" class="space-y-6">
@@ -419,7 +411,6 @@
                         </form>
                     </div>
                     
-                    <!-- 出库登记标签页 -->
                     <div id="stockOut" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <h2 class="text-2xl font-bold text-gray-800 mb-6">出库登记</h2>
                         <form id="stockOutForm" class="space-y-6">
@@ -479,7 +470,6 @@
                         </form>
                     </div>
                     
-                    <!-- 生化试剂信息页 -->
                     <div id="biochemicalReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">生化试剂信息</h2>
@@ -503,13 +493,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="biochemicalReagentTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 免疫试剂信息页 -->
                     <div id="immuneReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">免疫试剂信息</h2>
@@ -533,13 +521,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="immuneReagentTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 临检试剂信息页 -->
                     <div id="clinicalReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">临检试剂信息</h2>
@@ -563,13 +549,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="clinicalReagentTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 耗材信息页 -->
                     <div id="consumables" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">耗材信息</h2>
@@ -593,13 +577,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="consumablesTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 记录汇总页 -->
                     <div id="recordSummary" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">记录汇总</h2>
@@ -643,7 +625,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="filterDateSummary" class="block text-sm font-medium text-gray-700 mb-1">日期</label>
+                                    <label for="filterDateSummary" class="block text-sm font-medium text-gray-700 mb-1">登记日期</label>
                                     <input type="date" id="filterDateSummary" class="w-full px-4 py-2 border border-gray-300 rounded-lg form-input-focus">
                                 </div>
                             </div>
@@ -673,13 +655,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="recordSummaryTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 临期试剂标签页 -->
                     <div id="expiringReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">临期试剂</h2>
@@ -705,13 +685,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="expiringReagentTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 过期试剂标签页 -->
                     <div id="expiredReagent" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-2xl font-bold text-gray-800">过期试剂</h2>
@@ -737,13 +715,11 @@
                                     </tr>
                                 </thead>
                                 <tbody id="expiredReagentTable" class="bg-white divide-y divide-gray-200">
-                                    <!-- 表格内容将通过JS动态生成 -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 过期试剂处置标签页 -->
                     <div id="expiredDisposal" class="tab-content bg-white rounded-xl shadow-md p-6 fade-in hidden">
                         <h2 class="text-2xl font-bold text-gray-800 mb-6">过期试剂处置</h2>
                         <form id="expiredDisposalForm" class="space-y-6">
@@ -816,7 +792,6 @@
         </main>
     </div>
     
-    <!-- 通知提示组件 -->
     <div id="notification" class="fixed bottom-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-y-20 opacity-0 transition-all duration-500 z-50 flex items-start">
         <div id="notificationIcon" class="mr-3 text-primary">
             <i class="fa fa-info-circle text-xl"></i>
@@ -831,16 +806,13 @@
     </div>
     
     <script>
-        // 数据存储
         let reagentData = [];
         let stockRecord = [];
         let users = [
-            { username: 'admin', password: '123456' }
+            { username: 'admin', password: 'admin123' }
         ];
         
-        // DOM 加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
-            // 设置默认日期和时间
             document.getElementById('stockInDate').valueAsDate = new Date();
             document.getElementById('stockInTime').value = new Date().toTimeString().slice(0, 8);
             document.getElementById('stockOutDate').valueAsDate = new Date();
@@ -849,16 +821,12 @@
             document.getElementById('disposalTime').value = new Date().toTimeString().slice(0, 8);
             document.getElementById('filterDateSummary').valueAsDate = new Date();
             
-            // 初始化事件监听
             initEventListeners();
             
-            // 从本地存储加载数据
             loadData();
         });
         
-        // 初始化事件监听
         function initEventListeners() {
-            // 登录表单提交
             document.getElementById('loginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
@@ -875,7 +843,6 @@
                 }
             });
             
-            // 登出按钮
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 document.getElementById('mainPage').classList.add('hidden');
                 document.getElementById('loginPage').classList.remove('hidden');
@@ -883,27 +850,22 @@
                 showNotification('info', '已登出', '您已成功退出系统');
             });
             
-            // 注册按钮
             document.getElementById('registerBtn').addEventListener('click', function() {
                 openModal('registerModal');
             });
             
-            // 修改密码按钮
             document.getElementById('changePasswordBtn').addEventListener('click', function() {
                 openModal('changePasswordModal');
             });
             
-            // 关闭注册模态框
             document.getElementById('closeRegisterModal').addEventListener('click', function() {
                 closeModal('registerModal');
             });
             
-            // 取消注册
             document.getElementById('cancelRegister').addEventListener('click', function() {
                 closeModal('registerModal');
             });
             
-            // 注册表单提交
             document.getElementById('registerForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const newUsername = document.getElementById('newUsername').value;
@@ -926,17 +888,14 @@
                 showNotification('success', '注册成功', '您可以使用新账号登录了');
             });
             
-            // 关闭修改密码模态框
             document.getElementById('closeChangePasswordModal').addEventListener('click', function() {
                 closeModal('changePasswordModal');
             });
             
-            // 取消修改密码
             document.getElementById('cancelChangePassword').addEventListener('click', function() {
                 closeModal('changePasswordModal');
             });
             
-            // 修改密码表单提交
             document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
@@ -961,34 +920,27 @@
                 showNotification('success', '修改成功', '密码已成功修改');
             });
             
-            // 标签页切换
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // 移除所有标签页按钮的活动状态
                     document.querySelectorAll('.tab-btn').forEach(b => {
                         b.classList.remove('tab-active');
                         b.classList.add('hover:bg-gray-100');
                     });
                     
-                    // 添加当前标签页按钮的活动状态
                     this.classList.add('tab-active');
                     this.classList.remove('hover:bg-gray-100');
                     
-                    // 隐藏所有标签页内容
                     document.querySelectorAll('.tab-content').forEach(content => {
                         content.classList.add('hidden');
                     });
                     
-                    // 显示当前标签页内容
                     const tabId = this.getAttribute('data-tab');
                     document.getElementById(tabId).classList.remove('hidden');
                     
-                    // 更新表格数据
                     updateTables();
                 });
             });
-            
-            // 试剂信息表单提交
+
             document.getElementById('reagentInfoForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const name = document.getElementById('reagentName').value;
@@ -998,13 +950,11 @@
                 const validityPeriod = document.getElementById('validityPeriod').value;
                 const expiryDate = document.getElementById('expiryDate').value;
                 
-                // 检查是否已存在相同批号的试剂
                 if (reagentData.some(item => item.batchNumber === batchNumber)) {
                     showNotification('error', '保存失败', '该批号的试剂已存在');
                     return;
                 }
                 
-                // 添加新试剂
                 const newReagent = {
                     id: reagentData.length + 1,
                     name,
@@ -1020,15 +970,12 @@
                 this.reset();
                 showNotification('success', '保存成功', '试剂信息已成功添加');
                 
-                // 更新试剂信息库表格
                 updateReagentLibraryTable();
             });
             
-            // 计算失效日期
             document.getElementById('productionDate').addEventListener('change', calculateExpiryDate);
             document.getElementById('validityPeriod').addEventListener('change', calculateExpiryDate);
             
-            // 入库登记表单 - 批号输入事件
             document.getElementById('stockInBatchNumber').addEventListener('input', function() {
                 const batchNumber = this.value;
                 const reagent = reagentData.find(item => item.batchNumber === batchNumber);
@@ -1048,7 +995,6 @@
                 }
             });
             
-            // 入库登记表单提交
             document.getElementById('stockInForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const batchNumber = document.getElementById('stockInBatchNumber').value;
@@ -1062,7 +1008,6 @@
                     return;
                 }
                 
-                // 添加入库记录
                 const newRecord = {
                     id: stockRecord.length + 1,
                     name: reagent.name,
@@ -1082,22 +1027,18 @@
                 this.reset();
                 showNotification('success', '入库成功', '入库记录已保存');
                 
-                // 重置试剂信息显示
                 document.getElementById('stockInName').textContent = '-';
                 document.getElementById('stockInType').textContent = '-';
                 document.getElementById('stockInProductionDate').textContent = '-';
                 document.getElementById('stockInValidityPeriod').textContent = '-';
                 document.getElementById('stockInExpiryDate').textContent = '-';
 
-                // 重新设置日期和时间输入框的值
                 document.getElementById('stockInDate').valueAsDate = new Date();
                 document.getElementById('stockInTime').value = new Date().toTimeString().slice(0, 8);
 
-                // 更新表格
                 updateTables();
             });
             
-            // 出库登记表单 - 批号输入事件
             document.getElementById('stockOutBatchNumber').addEventListener('input', function() {
                 const batchNumber = this.value;
                 const reagent = reagentData.find(item => item.batchNumber === batchNumber);
@@ -1109,7 +1050,6 @@
                     document.getElementById('stockOutValidityPeriod').textContent = `${reagent.validityPeriod} 月`;
                     document.getElementById('stockOutExpiryDate').textContent = reagent.expiryDate;
                     
-                    // 计算当前库存
                     const currentStock = calculateCurrentStock(batchNumber);
                     document.getElementById('stockOutCurrentStock').textContent = currentStock;
                 } else {
@@ -1122,7 +1062,6 @@
                 }
             });
             
-            // 出库登记表单提交
             document.getElementById('stockOutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const batchNumber = document.getElementById('stockOutBatchNumber').value;
@@ -1136,20 +1075,18 @@
                     return;
                 }
                 
-                // 检查库存是否足够
                 const currentStock = calculateCurrentStock(batchNumber);
                 if (quantity > currentStock) {
                     showNotification('error', '出库失败', `库存不足，当前库存: ${currentStock}`);
                     return;
                 }
                 
-                // 添加出库记录
                 const newRecord = {
                     id: stockRecord.length + 1,
                     name: reagent.name,
                     type: reagent.type,
                     batchNumber: reagent.batchNumber,
-                    quantity: -quantity, // 出库用负数表示
+                    quantity: -quantity, 
                     productionDate: reagent.productionDate,
                     validityPeriod: reagent.validityPeriod,
                     expiryDate: reagent.expiryDate,
@@ -1163,7 +1100,6 @@
                 this.reset();
                 showNotification('success', '出库成功', '出库记录已保存');
                 
-                // 重置试剂信息显示
                 document.getElementById('stockOutName').textContent = '-';
                 document.getElementById('stockOutType').textContent = '-';
                 document.getElementById('stockOutProductionDate').textContent = '-';
@@ -1171,15 +1107,12 @@
                 document.getElementById('stockOutExpiryDate').textContent = '-';
                 document.getElementById('stockOutCurrentStock').textContent = '-';
                 
-                // 重新设置日期和时间输入框的值
                 document.getElementById('stockOutDate').valueAsDate = new Date();
                 document.getElementById('stockOutTime').value = new Date().toTimeString().slice(0, 8);
                 
-                // 更新表格
                 updateTables();
             });
             
-            // 过期试剂处置表单 - 批号输入事件
             document.getElementById('disposalBatchNumber').addEventListener('input', function() {
                 const batchNumber = this.value;
                 const reagent = reagentData.find(item => item.batchNumber === batchNumber);
@@ -1191,7 +1124,6 @@
                     document.getElementById('disposalValidityPeriod').textContent = `${reagent.validityPeriod} 月`;
                     document.getElementById('disposalExpiryDate').textContent = reagent.expiryDate;
                     
-                    // 计算当前库存
                     const currentStock = calculateCurrentStock(batchNumber);
                     document.getElementById('disposalCurrentStock').textContent = currentStock;
                 } else {
@@ -1204,7 +1136,6 @@
                 }
             });
             
-            // 过期试剂处置表单提交
             document.getElementById('expiredDisposalForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const batchNumber = document.getElementById('disposalBatchNumber').value;
@@ -1219,14 +1150,12 @@
                     return;
                 }
                 
-                // 检查库存是否足够
                 const currentStock = calculateCurrentStock(batchNumber);
                 if (quantity > currentStock) {
                     showNotification('error', '处置失败', `库存不足，当前库存: ${currentStock}`);
                     return;
                 }
                 
-                // 检查是否已过期
                 const today = new Date();
                 const expiryDate = new Date(reagent.expiryDate);
                 if (expiryDate > today) {
@@ -1234,13 +1163,12 @@
                     return;
                 }
                 
-                // 添加处置记录
                 const newRecord = {
                     id: stockRecord.length + 1,
                     name: reagent.name,
                     type: reagent.type,
                     batchNumber: reagent.batchNumber,
-                    quantity: -quantity, // 处置用负数表示
+                    quantity: -quantity, 
                     productionDate: reagent.productionDate,
                     validityPeriod: reagent.validityPeriod,
                     expiryDate: reagent.expiryDate,
@@ -1255,7 +1183,6 @@
                 this.reset();
                 showNotification('success', '处置成功', '过期试剂处置记录已保存');
                 
-                // 重置试剂信息显示
                 document.getElementById('disposalName').textContent = '-';
                 document.getElementById('disposalType').textContent = '-';
                 document.getElementById('disposalProductionDate').textContent = '-';
@@ -1263,19 +1190,15 @@
                 document.getElementById('disposalExpiryDate').textContent = '-';
                 document.getElementById('disposalCurrentStock').textContent = '-';
 
-                // 重新设置日期和时间输入框的值
                 document.getElementById('disposalDate').valueAsDate = new Date();
                 document.getElementById('disposalTime').value = new Date().toTimeString().slice(0, 8);
                 
-                // 更新表格
                 updateTables();
             });
             
-            // 应用筛选按钮
             document.getElementById('applyFiltersLibrary').addEventListener('click', updateReagentLibraryTable);
             document.getElementById('applyFiltersSummary').addEventListener('click', updateRecordSummaryTable);
             
-            // 导出按钮
             document.getElementById('exportXlsxLibrary').addEventListener('click', function() {
                 exportToExcel(getFilteredReagentData(), '试剂信息库');
             });
@@ -1340,13 +1263,11 @@
                 exportToCsv(getExpiredReagents(), '过期试剂');
             });
             
-            // 关闭通知
             document.getElementById('closeNotification').addEventListener('click', function() {
                 hideNotification();
             });
         }
         
-        // 打开模态框
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             const modalContent = document.getElementById(`${modalId}Content`);
@@ -1358,7 +1279,6 @@
             }, 10);
         }
         
-        // 关闭模态框
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             const modalContent = document.getElementById(`${modalId}Content`);
@@ -1371,7 +1291,6 @@
             }, 300);
         }
         
-        // 计算失效日期
         function calculateExpiryDate() {
             const productionDate = document.getElementById('productionDate').value;
             const validityPeriod = document.getElementById('validityPeriod').value;
@@ -1382,19 +1301,17 @@
                 
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
+                const day = String(date.getDate() - 1).padStart(2, '0');
                 
                 document.getElementById('expiryDate').value = `${year}-${month}-${day}`;
             }
         }
         
-        // 计算当前库存
         function calculateCurrentStock(batchNumber) {
             const records = stockRecord.filter(record => record.batchNumber === batchNumber);
             return records.reduce((total, record) => total + record.quantity, 0);
         }
         
-        // 获取按名称汇总的库存数据
         function getCategoryStockData(category) {
             const reagents = reagentData.filter(item => item.type === category);
             const uniqueNames = [...new Set(reagents.map(item => item.name))];
@@ -1413,7 +1330,6 @@
             });
         }
         
-        // 获取临期试剂
         function getExpiringReagents() {
             const today = new Date();
             const expiringReagents = [];
@@ -1440,7 +1356,6 @@
             return expiringReagents;
         }
         
-        // 获取过期试剂
         function getExpiredReagents() {
             const today = new Date();
             const expiredReagents = [];
@@ -1467,7 +1382,6 @@
             return expiredReagents;
         }
         
-        // 获取筛选后的试剂数据
         function getFilteredReagentData() {
             const filterName = document.getElementById('filterName').value.toLowerCase();
             const filterType = document.getElementById('filterType').value;
@@ -1480,7 +1394,6 @@
             });
         }
         
-        // 获取筛选后的库存记录
         function getFilteredStockRecord() {
             const filterName = document.getElementById('filterNameSummary').value.toLowerCase();
             const filterType = document.getElementById('filterTypeSummary').value;
@@ -1497,7 +1410,6 @@
             });
         }
         
-        // 更新所有表格
         function updateTables() {
             updateReagentLibraryTable();
             updateRecordSummaryTable();
@@ -1505,7 +1417,6 @@
             updateExpiryTables();
         }
         
-        // 更新试剂信息库表格
         function updateReagentLibraryTable() {
             const tableBody = document.getElementById('reagentLibraryTable');
             const filteredData = getFilteredReagentData();
@@ -1541,7 +1452,6 @@
                 tableBody.appendChild(row);
             });
             
-            // 添加删除事件监听
             document.querySelectorAll('.delete-reagent').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = parseInt(this.getAttribute('data-id'));
@@ -1550,10 +1460,8 @@
             });
         }
         
-        // 删除试剂
         function deleteReagent(id) {
             if (confirm('确定要删除这条试剂信息吗？')) {
-                // 检查是否有相关记录
                 const hasRecords = stockRecord.some(record => record.batchNumber === reagentData[id - 1].batchNumber);
                 
                 if (hasRecords) {
@@ -1562,7 +1470,6 @@
                 }
                 
                 reagentData.splice(id - 1, 1);
-                // 重新分配ID
                 reagentData.forEach((item, index) => {
                     item.id = index + 1;
                 });
@@ -1572,7 +1479,6 @@
             }
         }
         
-        // 更新记录汇总表格
         function updateRecordSummaryTable() {
             const tableBody = document.getElementById('recordSummaryTable');
             const filteredData = getFilteredStockRecord();
@@ -1588,7 +1494,6 @@
                 return;
             }
             
-            // 按日期和时间排序（从早到晚）
             const sortedData = [...filteredData].sort((a, b) => {
                 if (a.date === b.date) {
                     return a.time.localeCompare(b.time);
@@ -1596,7 +1501,6 @@
                 return a.date.localeCompare(b.date);
             });
             
-            // 重新分配ID
             sortedData.forEach((item, index) => {
                 item.id = index + 1;
             });
@@ -1605,7 +1509,6 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 
-                // 根据状态设置不同的样式
                 let statusClass = '';
                 if (item.status === '入库') {
                     statusClass = 'text-green-600';
@@ -1636,7 +1539,6 @@
                 tableBody.appendChild(row);
             });
             
-            // 添加删除事件监听
             document.querySelectorAll('.delete-record').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = parseInt(this.getAttribute('data-id'));
@@ -1645,11 +1547,9 @@
             });
         }
         
-        // 删除记录
         function deleteRecord(id) {
             if (confirm('确定要删除这条记录吗？')) {
                 stockRecord.splice(id - 1, 1);
-                // 重新分配ID
                 stockRecord.forEach((item, index) => {
                     item.id = index + 1;
                 });
@@ -1661,7 +1561,6 @@
             }
         }
         
-        // 更新分类表格（生化、免疫、临检、耗材）
         function updateCategoryTables() {
             updateCategoryTable('生化', 'biochemicalReagentTable');
             updateCategoryTable('免疫', 'immuneReagentTable');
@@ -1669,7 +1568,6 @@
             updateCategoryTable('耗材', 'consumablesTable');
         }
         
-        // 更新单个分类表格
         function updateCategoryTable(category, tableId) {
             const tableBody = document.getElementById(tableId);
             const stockData = getCategoryStockData(category);
@@ -1689,7 +1587,6 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 
-                // 根据库存数量设置不同的样式
                 let quantityClass = 'text-gray-900';
                 if (item.remainingQuantity <= 0) {
                     quantityClass = 'text-red-600';
@@ -1704,13 +1601,11 @@
             });
         }
         
-        // 更新临期和过期表格
         function updateExpiryTables() {
             updateExpiringReagentTable();
             updateExpiredReagentTable();
         }
         
-        // 更新临期试剂表格
         function updateExpiringReagentTable() {
             const tableBody = document.getElementById('expiringReagentTable');
             const expiringReagents = getExpiringReagents();
@@ -1730,7 +1625,6 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 
-                // 根据剩余天数设置不同的样式
                 let daysLeftClass = 'text-yellow-600';
                 if (item.daysLeft <= 7) {
                     daysLeftClass = 'text-red-600';
@@ -1747,7 +1641,6 @@
             });
         }
         
-        // 更新过期试剂表格
         function updateExpiredReagentTable() {
             const tableBody = document.getElementById('expiredReagentTable');
             const expiredReagents = getExpiredReagents();
@@ -1778,17 +1671,14 @@
             });
         }
         
-        // 导出数据到Excel
         function exportToExcel(data, sheetName) {
             if (data.length === 0) {
                 showNotification('error', '导出失败', '没有数据可导出');
                 return;
             }
             
-            // 转换数据为适合SheetJS的格式
             const ws_data = [];
             
-            // 添加表头
             if (sheetName === '试剂信息库') {
                 ws_data.push(['ID', '名称', '种类', '批号', '生产日期', '效期（月）', '失效日期']);
                 data.forEach(item => {
@@ -1816,30 +1706,24 @@
                 });
             }
             
-            // 创建工作簿和工作表
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(ws_data);
             
-            // 添加工作表到工作簿
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
             
-            // 生成Excel文件并下载
             XLSX.writeFile(wb, `${sheetName}.xlsx`);
             
             showNotification('success', '导出成功', `已成功导出 ${sheetName} 数据`);
         }
         
-        // 导出数据到CSV
         function exportToCsv(data, fileName) {
             if (data.length === 0) {
                 showNotification('error', '导出失败', '没有数据可导出');
                 return;
             }
             
-            // 转换数据为CSV格式
             let csvContent = '';
             
-            // 添加表头
             if (fileName === '试剂信息库') {
                 csvContent += 'ID,名称,种类,批号,生产日期,效期（月）,失效日期\n';
                 data.forEach(item => {
@@ -1867,7 +1751,6 @@
                 });
             }
             
-            // 创建Blob对象并下载
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -1883,18 +1766,15 @@
             showNotification('success', '导出成功', `已成功导出 ${fileName} 数据`);
         }
         
-        // 显示通知
         function showNotification(type, title, message) {
             const notification = document.getElementById('notification');
             const notificationTitle = document.getElementById('notificationTitle');
             const notificationMessage = document.getElementById('notificationMessage');
             const notificationIcon = document.getElementById('notificationIcon');
             
-            // 设置通知内容
             notificationTitle.textContent = title;
             notificationMessage.textContent = message;
             
-            // 设置通知类型样式
             notificationIcon.className = 'mr-3';
             if (type === 'success') {
                 notificationIcon.classList.add('text-green-500', 'fa', 'fa-check-circle', 'text-xl');
@@ -1906,33 +1786,28 @@
                 notificationIcon.classList.add('text-blue-500', 'fa', 'fa-info-circle', 'text-xl');
             }
             
-            // 显示通知
             notification.classList.remove('translate-y-20', 'opacity-0');
             notification.classList.add('translate-y-0', 'opacity-100');
             
-            // 3秒后自动隐藏
             setTimeout(hideNotification, 3000);
         }
         
-        // 隐藏通知
         function hideNotification() {
             const notification = document.getElementById('notification');
             notification.classList.remove('translate-y-0', 'opacity-100');
             notification.classList.add('translate-y-20', 'opacity-0');
         }
         
-        // 保存数据到本地存储
         function saveData() {
-            saveRecordToGitHub.setItem('reagentData', JSON.stringify(reagentData));
-            saveRecordToGitHub.setItem('stockRecord', JSON.stringify(stockRecord));
-            saveRecordToGitHub.setItem('users', JSON.stringify(users));
+            localStorage.setItem('reagentData', JSON.stringify(reagentData));
+            localStorage.setItem('stockRecord', JSON.stringify(stockRecord));
+            localStorage.setItem('users', JSON.stringify(users));
         }
         
-        // 从本地存储加载数据
         function loadData() {
-            const savedReagentData = saveRecordToGitHub.getItem('reagentData');
-            const savedStockRecord = saveRecordToGitHub.getItem('stockRecord');
-            const savedUsers = saveRecordToGitHub.getItem('users');
+            const savedReagentData = localStorage.getItem('reagentData');
+            const savedStockRecord = localStorage.getItem('stockRecord');
+            const savedUsers = localStorage.getItem('users');
             
             if (savedReagentData) {
                 reagentData = JSON.parse(savedReagentData);
@@ -1946,26 +1821,22 @@
                 users = JSON.parse(savedUsers);
             }
             
-            // 更新表格
             updateTables();
         }
 
-        // 刷新页面跳转问题
         window.addEventListener('beforeunload', function () {
-            saveRecordToGitHub.setItem('activeTab', document.querySelector('.tab-active').dataset.tab);
+            localStorage.setItem('activeTab', document.querySelector('.tab-active').dataset.tab);
         });
         
-        // 初始化
         document.addEventListener('DOMContentLoaded', function () {
             loadData();
             initializeEventListeners();
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            // 检查用户是否已经登录
             const loginPage = document.getElementById('loginPage');
             const mainPage = document.getElementById('mainPage');
-            const isLoggedIn = saveRecordToGitHub.getItem('isLoggedIn');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
             if (isLoggedIn === 'true') {
                 loginPage.style.display = 'none';
                 mainPage.style.display = 'flex';
@@ -1974,26 +1845,22 @@
                 mainPage.style.display = 'none';
             }
 
-            // 登录表单提交事件
             const loginForm = document.getElementById('loginForm');
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                 假设登录成功
-                saveRecordToGitHub.setItem('isLoggedIn', 'true');
+                localStorage.setItem('isLoggedIn', 'true');
                 loginPage.style.display = 'none';
                 mainPage.style.display = 'flex';
             });
 
-            // 退出登录按钮点击事件
             const logoutBtn = document.getElementById('logoutBtn');
             logoutBtn.addEventListener('click', function() {
-                saveRecordToGitHub.removeItem('isLoggedIn');
+                localStorage.removeItem('isLoggedIn');
                 document.getElementById('mainPage').style.display = 'none';
                 document.getElementById('loginPage').style.display = 'flex';
             });
         
-            // 恢复标签页状态
-            const activeTab = saveRecordToGitHub.getItem('activeTab');
+            const activeTab = localStorage.getItem('activeTab');
             if (activeTab) {
                 const tabButtons = document.querySelectorAll('.tab-btn');
                 const tabContents = document.querySelectorAll('.tab-content');
@@ -2015,12 +1882,11 @@
                 });
             }
 
-            // 记录当前标签页
             const tabButtons = document.querySelectorAll('.tab-btn');
             tabButtons.forEach(button => {
                 button.addEventListener('click', function () {
                     const tabId = this.dataset.tab;
-                    saveRecordToGitHub.setItem('activeTab', tabId);
+                    localStorage.setItem('activeTab', tabId);
 
                     tabButtons.forEach(btn => {
                         if (btn.dataset.tab === tabId) {
@@ -2044,4 +1910,3 @@
     </script>
 </body>
 </html>
-    
