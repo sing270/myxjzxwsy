@@ -1,0 +1,4090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        header{
+            height: 50px;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(to right, #ec0370, #aa03ec, #05cbe6) 1;
+        }
+        h1{
+            font-size: 50px;
+            background: linear-gradient(to right, #f10303, #e09a02, #ec0370,
+                                                #aa03ec, #03ecd8);
+            background-size: 500%;
+            animation: bgmove 20s infinite;
+            background-clip: text;
+            color: transparent
+        }
+        .mian{
+            height: 600px;
+            display: flex;
+        }
+        .navigation{
+            height: 600px;
+            width: 180px;
+            align-items: center;
+            max-height: 590px; 
+            overflow-y: auto;
+        }
+        .navigation ul button{
+            font-size: 16px;
+            width: 130px;
+            height: 36px;
+            margin: 0.5rem -2rem;
+            border-radius: 5px;
+            border: 0px;
+            color: black;
+            background-color: white;
+        }
+        .dh button:hover,
+        .dh button.tab-active{
+            background-color: #0cd3c2;
+            color: white;
+            cursor: pointer;
+        }
+        .message{
+            height: 600px;
+            width: 1244px;
+        }
+        .box{
+            margin: 0.5rem 0.7rem;
+            padding: 0.5rem 2rem;
+            height: 562px;
+            width: 1156px;
+            border: 1px solid #c5c7c7;
+            border-radius: 8px;
+            box-shadow: 6px 6px 8px rgba(0, 0, 0, 0.616);
+            display: none;
+        }
+        .box.active{
+            display: block;
+        }
+        .file-upload{
+            margin: 20px 0;
+        }
+        .upload-btn{
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #0182fa;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            font-weight: 500;
+        }
+        .upload-btn:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+        }
+        .upload-remark{
+            color: #747575;
+            font-size: 15px;
+        }
+        .file-preview{
+            margin-top: 15px;
+            padding: 20px;
+            border: 1px dashed #a19d9d;
+            border-radius: 4px;
+        }
+        .file-preview button{
+            background-color: #0182fa;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-weight: 500;
+            border-style: none;
+        }
+        .file-preview button:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+        }
+        .upload-status{
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success{
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error{
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .table-container{
+            max-height: 490px;
+            overflow: auto;
+            background-color: #f2f5f59f;
+        }
+        .table-container table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 2px solid rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        .attendancerecodeheader,
+        .attendancearrangeheader,
+        .mergerecodeheader,
+        .mergeeditheader,
+        .lcjheader,
+        .szxheader,
+        .lcjunheader,
+        .dhyheader,
+        .xwheader,
+        .wlheader,
+        .lcjrheader,
+        .szxrheader,
+        .lcjunrheader,
+        .dhyrheader,
+        .xwrheader,
+        .wlrheader{
+            display: flex;
+            justify-content: flex-satrt;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .attendancearrangeheader input{
+            width: 100px;
+            height: 25px;
+            font-size: 12px;
+            border-radius: 5px;
+            border: 2px solid #000;
+        }
+        .filter-container,
+        .arrange-filter-container,
+        .merge-filter-container,
+        .edit-filter-container,
+        .lcj-filter-container,
+        .szx-filter-container,
+        .lcjun-filter-container,
+        .dhy-filter-container,
+        .xw-filter-container,
+        .wl-filter-container,
+        .lcjr-filter-container,
+        .szxr-filter-container,
+        .lcjunr-filter-container,
+        .dhyr-filter-container,
+        .xwr-filter-container,
+        .wlr-filter-container{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-right: auto;
+            margin-left: 390px;
+        }
+        .arrange-filter-container{
+            margin-left: 10px;
+        }
+        .merge-filter-container{
+            margin-left: 380px;
+        }
+        .edit-filter-container,
+        .lcj-filter-container,
+        .szx-filter-container,
+        .lcjun-filter-container,
+        .dhy-filter-container,
+        .xw-filter-container,
+        .wl-filter-container,
+        .lcjr-filter-container,
+        .szxr-filter-container,
+        .lcjunr-filter-container,
+        .dhyr-filter-container,
+        .xwr-filter-container,
+        .wlr-filter-container{
+            margin-left: 0px;
+        }
+        .filter-item,
+        .arrange-filter-item,
+        .merge-filter-item,
+        .edit-filter-item,
+        .lcj-filter-item,
+        .szx-filter-item,
+        .lcjun-filter-item,
+        .dhy-filter-item,
+        .xw-filter-item,
+        .wl-filter-item,
+        .lcjr-filter-item,
+        .szxr-filter-item,
+        .lcjunr-filter-item,
+        .dhyr-filter-item,
+        .xwr-filter-item,
+        .wlr-filter-item{
+            width: 250px;
+            height: 50px;
+            display: flex;
+            flex-direction:row;
+            justify-content: center;
+            align-items: center;
+            background-color: #962f2f;
+            border-radius: 5px;
+        }
+        .filter-item label,
+        .arrange-filter-item label,
+        .merge-filter-item label,
+        .edit-filter-item label,
+        .lcj-filter-item label,
+        .szx-filter-item label,
+        .lcjun-filter-item label,
+        .dhy-filter-item label,
+        .xw-filter-item label,
+        .wl-filter-item label,
+        .lcjr-filter-item label,
+        .szxr-filter-item label,
+        .lcjunr-filter-item label,
+        .dhyr-filter-item label,
+        .xwr-filter-item label,
+        .wlr-filter-item label{
+            font-size: 16px;
+            margin-right: 15px;
+            color: #ffffff;
+            font-weight: 500px;
+        }
+        .filter-item input,
+        .filter-item select,
+        .arrange-filter-item input,
+        .arrange-filter-item select,
+        .merge-filter-item input,
+        .merge-filter-item select,
+        .edit-filter-item input,
+        .lcj-filter-item input,
+        .szx-filter-item input,
+        .lcjun-filter-item input,
+        .dhy-filter-item input,
+        .xw-filter-item input,
+        .wl-filter-item input,
+        .lcjr-filter-item input,
+        .szxr-filter-item input,
+        .lcjunr-filter-item input,
+        .dhyr-filter-item input,
+        .xwr-filter-item input,
+        .wlr-filter-item input{
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100px;
+        }
+        #clearrecode,
+        #outputrecode,
+        #clearfilter,
+        #clearPersonRecode,
+        #outputPersonRecode,
+        #clearPersonFilter,
+        #cleararrangeFilter,
+        #cleararrangeRecode,
+        #outputarrangeRecode,
+        #generateArrangeTable,
+        #mergeclearfilter,
+        #mergeclearrecode,
+        #mergeoutputrecode,
+        #generateEditTable,
+        #editclearfilter,
+        #editclearrecode,
+        #editoutputrecode,
+        #generatelcjTable,
+        #lcjclearfilter,
+        #lcjclearrecode,
+        #lcjoutputrecode,
+        #generateszxTable,
+        #szxclearfilter,
+        #szxclearrecode,
+        #szxoutputrecode,
+        #generatelcjunTable,
+        #lcjunclearfilter,
+        #lcjunclearrecode,
+        #lcjunoutputrecode,
+        #generatedhyTable,
+        #dhyclearfilter,
+        #dhyclearrecode,
+        #dhyoutputrecode,
+        #generatexwTable,
+        #xwclearfilter,
+        #xwclearrecode,
+        #xwoutputrecode,
+        #generatewlTable,
+        #wlclearfilter,
+        #wlclearrecode,
+        #wloutputrecode,
+        #generatelcjrTable,
+        #lcjrclearfilter,
+        #lcjrclearrecode,
+        #lcjroutputrecode,
+        #generateszxrTable,
+        #szxrclearfilter,
+        #szxrclearrecode,
+        #szxroutputrecode,
+        #generatelcjunrTable,
+        #lcjunrclearfilter,
+        #lcjunrclearrecode,
+        #lcjunroutputrecode,
+        #generatedhyrTable,
+        #dhyrclearfilter,
+        #dhyrclearrecode,
+        #dhyroutputrecode,
+        #generatexwrTable,
+        #xwrclearfilter,
+        #xwrclearrecode,
+        #xwroutputrecode,
+        #generatewlrTable,
+        #wlrclearfilter,
+        #wlrclearrecode,
+        #wlroutputrecode{
+            width: 110px;
+            height: 40px;
+            margin: 13px 5px;
+            border-radius: 5px;
+            border-style: none;
+            background-color: #0182fa;
+            color: white;
+            font-weight: 500px;
+            cursor: pointer;
+        }
+        #clearrecode:hover,
+        #outputrecode:hover,
+        #clearfilter:hover,
+        #clearPersonRecode:hover,
+        #outputPersonRecode:hover,
+        #clearPersonFilter:hover,
+        #cleararrangeFilter:hover,
+        #cleararrangeRecode:hover,
+        #outputarrangeRecode:hover,
+        #generateArrangeTable:hover,
+        #mergeclearfilter:hover,
+        #mergeclearrecode:hover,
+        #mergeoutputrecode:hover,
+        #generateEditTable:hover,
+        #editclearfilter:hover,
+        #editclearrecode:hover,
+        #editoutputrecode:hover,
+        #generatelcjTable:hover,
+        #lcjclearfilter:hover,
+        #lcjclearrecode:hover,
+        #lcjoutputrecode:hover,
+        #generateszxTable:hover,
+        #szxclearfilter:hover,
+        #szxclearrecode:hover,
+        #szxoutputrecode:hover,
+        #generatelcjunTable:hover,
+        #lcjunclearfilter:hover,
+        #lcjunclearrecode:hover,
+        #lcjunoutputrecode:hover,
+        #generatedhyTable:hover,
+        #dhyclearfilter:hover,
+        #dhyclearrecode:hover,
+        #dhyoutputrecode:hover,
+        #generatexwTable:hover,
+        #xwclearfilter:hover,
+        #xwclearrecode:hover,
+        #xwoutputrecode:hover,
+        #generatewlTable:hover,
+        #wlclearfilter:hover,
+        #wlclearrecode:hover,
+        #wloutputrecode:hover,
+        #generatelcjrTable:hover,
+        #lcjrclearfilter:hover,
+        #lcjrclearrecode:hover,
+        #lcjroutputrecode:hover,
+        #generateszxrTable:hover,
+        #szxrclearfilter:hover,
+        #szxrclearrecode:hover,
+        #szxroutputrecode:hover,
+        #generatelcjunrTable:hover,
+        #lcjunrclearfilter:hover,
+        #lcjunrclearrecode:hover,
+        #lcjunroutputrecode:hover,
+        #generatedhyrTable:hover,
+        #dhyrclearfilter:hover,
+        #dhyrclearrecode:hover,
+        #dhyroutputrecode:hover,
+        #generatexwrTable:hover,
+        #xwrclearfilter:hover,
+        #xwrclearrecode:hover,
+        #xwroutputrecode:hover,
+        #generatewlrTable:hover,
+        #wlrclearfilter:hover,
+        #wlrclearrecode:hover,
+        #wlroutputrecode:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #generateEditTable{
+            margin-left: 260px;
+        }
+        #generatelcjTable,
+        #generateszxTable,
+        #generatelcjunTable,
+        #generatedhyTable,
+        #generatelcjrTable,
+        #generateszxrTable,
+        #generatelcjunrTable,
+        #generatedhyrTable{
+            margin-left: 280px;
+        }
+        #generatexwTable,
+        #generatewlTable,
+        #generatexwrTable,
+        #generatewlrTable{
+            margin-left: 297px;
+        }
+        .attendancehead{
+            margin-block: 5px;
+        }
+        .attendancethead th,
+        .attendancethead td{
+            border: 2px solid #000;
+            padding: 5px 10px;
+        }
+        .ruleshowlist th,
+        .ruleshowlist td,
+        .workruleshowlist th,
+        .workruleshowlist td,
+        .arrangerecodeshowlist th,
+        .arrangerecodeshowlist td{
+            border: 2px solid #000;
+            padding: 5px 10px;
+        }
+        .footer{
+            color:rgb(187, 187, 187);
+            font-size: 13px;
+            text-align: center;
+            height: 50px;
+        }
+        .header-status {
+            position: absolute;
+            top: 0px;
+            left: 59%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            border-radius: 4px;
+            border-style: none;
+            color: white;
+            font-weight: 500;
+            display: none;
+            z-index: 100;
+            font-size: 12px;
+        }
+        .header-status.success {
+            background-color: #36d65bc0;
+        }
+        .header-status.error {
+            background-color: #cf2d3dc0;
+        }
+        .register{
+            display: flex;
+            justify-content: center;
+            border: 2px solid rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 60px;
+        }
+        .register div{
+            display: flex;
+            width: 360px;
+        }
+        .register input{
+            margin-top: 17px;
+            width: 150px;
+            height: 30px;
+            border: 2px solid rgba(0, 0, 0, 1);
+            border-radius: 5px;
+        }
+        .register select{
+            margin-top: 17px;
+            width: 156px;
+            height: 36px;
+            border: 2px solid rgba(0, 0, 0, 1);
+            border-radius: 5px;
+        }
+        .register p{
+            font-size: 20px;
+        }
+        .register div button{
+            width: 200px;
+            height: 50px;
+            border-radius: 5px;
+            border-style: none;
+            background-color: #0182fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+        .register div button:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .customrule{
+            display: flex;
+            justify-content: center;
+            border: 2px solid rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 1rem;
+            gap: 120px;
+            margin-bottom: 10px;
+        }
+        .customrule input{
+            width: 100px;
+            height: 25px;
+            border-radius: 5px;
+            border: 2px solid rgba(0, 0, 0, 1);
+        }
+        .saveRuleBtn{
+            width: 100px;
+            border-radius: 5px;
+            border-style: none;
+            background-color: #0182fa;
+            color: white;
+            font-weight: 500px;
+        }
+        .saveRuleBtn:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .quoterule{
+            flex-wrap: wrap;
+            display: flex;
+        }
+        .quoterule select{
+            width: 100px;
+            height: 25px;
+            margin-bottom: 10px;
+            margin-right: 40px;
+            border-radius: 5px;
+            border: 2px solid rgba(0, 0, 0, 1);
+        }
+        .saveworkRule{
+            width: 100px;
+            border-radius: 5px;
+            border-style: none;
+            background-color: #0182fa;
+            color: white;
+            font-weight: 500px;
+            height: 25px;
+            margin-bottom: 10px;
+        } 
+        .saveworkRule:hover{
+            background-color: #962f2f;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .rule-table-container,
+        .work-table-container,
+        .arrange-table-container,
+        .merge-table-container,
+        .edit-table-container,
+        .lcj-table-container,
+        .szx-table-container,
+        .lcjun-table-container,
+        .dhy-table-container,
+        .xw-table-container,
+        .wl-table-container,
+        .lcjr-table-container,
+        .szxr-table-container,
+        .lcjunr-table-container,
+        .dhyr-table-container,
+        .xwr-table-container,
+        .wlr-table-container{
+            max-height: 390px; /* 设置最大高度，超出则显示滚动条 */
+            overflow-y: auto; /* 允许垂直滚动 */
+            background-color: #f2f5f59f;
+        }
+        .work-table-container {
+            max-height: 290px;
+        }
+        .arrange-table-container{
+            max-height: 460px;
+        }
+        .merge-table-container,
+        .edit-table-container,
+        .lcj-table-container,
+        .szx-table-container,
+        .lcjun-table-container,
+        .dhy-table-container,
+        .xw-table-container,
+        .wl-table-container,
+        .lcjr-table-container,
+        .szxr-table-container,
+        .lcjunr-table-container,
+        .dhyr-table-container,
+        .xwr-table-container,
+        .wlr-table-container{
+            max-height: 460px;
+        }
+        /* 保持表格宽度100%，避免滚动时表格宽度变化 */
+        .rule-table-container table,
+        .work-table-container table,
+        .arrange-table-container table,
+        .merge-table-container table,
+        .edit-table-container table,
+        .lcj-table-container table,
+        .szx-table-container table,
+        .lcjun-table-container table,
+        .dhy-table-container table,
+        .xw-table-container table,
+        .wl-table-container table,
+        .lcjr-table-container table,
+        .szxr-table-container table,
+        .lcjunr-table-container table,
+        .dhyr-table-container table,
+        .xwr-table-container table,
+        .wlr-table-container table{
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        @keyframes bgmove{
+            0%{
+                background-position: 0% 50%;
+            }
+            50%{
+                background-position: 100% 50%;
+            }
+            100%{
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><b>Keep Attendance Records</b></h1>
+        <div id="headerStatus" class="header-status"></div>
+    </header>
+        
+    <div class="mian">
+        <div class="navigation">
+            <ul class="dh">
+                <button id="update" class="flex item-center transition-all duration-300" data-tab="updatebox">
+                    <span><b>文件上传</b></span>
+                </button>
+                <button id="attendancerecode" class="flex item-center transition-all duration-300" data-tab="attendancerecodebox">
+                    <span><b>考勤记录表</b></span>
+                </button>
+                <button id="personregister" class="flex item-center transition-all duration-300" data-tab="personregisterbox">
+                    <span><b>人员登记</b></span>
+                </button>
+                <button id="personrecode" class="flex item-center transition-all duration-300" data-tab="personrecodebox">
+                    <span><b>人员记录表</b></span>
+                </button>
+                <button id="attendancerule" class="flex item-center transition-all duration-300" data-tab="attendancerulebox">
+                    <span><b>考勤规则制定表</b></span>
+                </button>
+                <button id="rulequote" class="flex item-center transition-all duration-300" data-tab="rulequotebox">
+                    <span><b>考勤班次引用表</b></span>
+                </button>
+                <button id="attendancearrange" class="flex item-center transition-all duration-300" data-tab="attendancearrangebox">
+                    <span><b>考勤整理记录表</b></span>
+                </button>
+                <button id="mergeRecode" class="flex item-center transition-all duration-300" data-tab="mergeRecodebox">
+                    <span><b>考勤整理合并页</b></span>
+                </button>
+                <button id="mergeEdit" class="flex item-center transition-all duration-300" data-tab="mergeEditbox">
+                    <span><b>考勤合并编辑页</b></span>
+                </button>
+                <button id="lichunjuanSection" class="flex item-center transition-all duration-300" data-tab="lichunjuanSectionbox">
+                    <span><b>李春娟部门页</b></span>
+                </button>
+                <button id="songzengxinSection" class="flex item-center transition-all duration-300" data-tab="songzengxinSectionbox">
+                    <span><b>宋增信部门页</b></span>
+                </button>
+                <button id="liuchangjunSection" class="flex item-center transition-all duration-300" data-tab="liuchangjunSectionbox">
+                    <span><b>刘长军部门页</b></span>
+                </button>
+                <button id="duanhaiyanSection" class="flex item-center transition-all duration-300" data-tab="duanhaiyanSectionbox">
+                    <span><b>段海燕部门页</b></span>
+                </button>
+                <button id="xuweiSection" class="flex item-center transition-all duration-300" data-tab="xuweiSectionbox">
+                    <span><b>徐伟部门页</b></span>
+                </button>
+                <button id="wangleiSection" class="flex item-center transition-all duration-300" data-tab="wangleiSectionbox">
+                    <span><b>王雷部门页</b></span>
+                </button>
+                <button id="lichunjuanRecord" class="flex item-center transition-all duration-300" data-tab="lichunjuanRecordbox">
+                    <span><b>李春娟结果页</b></span>
+                </button>
+                <button id="songzengxinRecord" class="flex item-center transition-all duration-300" data-tab="songzengxinRecordbox">
+                    <span><b>宋增信结果页</b></span>
+                </button>
+                <button id="liuchangjunRecord" class="flex item-center transition-all duration-300" data-tab="liuchangjunRecordbox">
+                    <span><b>刘长军结果页</b></span>
+                </button>
+                <button id="duanhaiyanRecord" class="flex item-center transition-all duration-300" data-tab="duanhaiyanRecordbox">
+                    <span><b>段海燕结果页</b></span>
+                </button>
+                <button id="xuweiRecord" class="flex item-center transition-all duration-300" data-tab="xuweiRecordbox">
+                    <span><b>徐伟结果页</b></span>
+                </button>
+                <button id="wangleiRecord" class="flex item-center transition-all duration-300" data-tab="wangleiRecordbox">
+                    <span><b>王雷结果页</b></span>
+                </button>
+                <button id="resulerecode" class="flex item-center transition-all duration-300" data-tab="resulerecodebox">
+                    <span><b>考勤结果汇总页</b></span>
+                </button>
+            </ul>
+        </div>
+        <main>
+            <div class="message">
+                <div id="updatebox" class="box active">
+                    <h3>文件上传</h3>
+                    <div class="file-upload">
+                        <label class="upload-btn" for="up-txt">
+                            选择文件导入
+                        </label>
+                        <input type="file" id="up-txt" accept=".txt, .xlsx" style="display: none;">
+                        <p class="upload-remark">支持 .txt 和 .xlsx 格式文件，最大不超过10MB</p>
+                        <div class="file-preview" id="filePreview">
+                            <p>已选择文件：<span id="fileName"></span></p>
+                            <button id="uploadConfirm">
+                                确认上传
+                            </button>
+                            <div class="upload-status" id="uploadStatus"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="attendancerecodebox" class="box">
+                    <div class="attendancerecodeheader">
+                        <h3>考勤记录表</h3>
+                        <div class="filter-container">
+                            <div class="filter-item">
+                                <label for="keyword-filter">关键词搜索</label>
+                                <input type="text" id="keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="attendancerecodebtn">
+                            <button id="clearfilter">清除筛选</button>
+                            <button id="clearrecode">删除记录</button>
+                            <button id="outputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="table-container">
+                        <table border="1">
+                        <thead class="attendancehead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>考勤时间5</th>
+                                <th>考勤时间6</th>
+                                <th>考勤时间7</th>
+                                <th>考勤时间8</th>
+                                <th>考勤时间9</th>
+                                <th>考勤时间10</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="personregisterbox" class="box">
+                    <h3>人员登记</h3>
+                    <div style="margin-bottom: 15px; text-align: right;">
+                        <button id="batchImportBtn" style="background-color: #0182fa; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                            批量导入
+                        </button>
+                    </div>
+                    <div class="register">
+                        <div>
+                            <p style="margin-left: 0px;"><b>姓名：</b></p>
+                            <input type="text" id="personName">
+                        </div>
+                        <div>
+                            <p><b>工号：</b></p>
+                            <input type="number" id="personId">
+                        </div>
+                        <div>
+                            <p><b>科室：</b></p>
+                            <select name="" id="personDepartment">
+                                <option value="">请选择科室</option>
+                                <option value="内科">内科</option>
+                                <option value="外科">外科</option>
+                                <option value="理疗科">理疗科</option>
+                                <option value="护理">护理</option>
+                                <option value="收费">收费</option>
+                                <option value="居民医保">居民医保</option>
+                                <option value="药房">药房</option>
+                                <option value="放射">放射</option>
+                                <option value="化验">化验</option>
+                                <option value="B超">B超</option>
+                                <option value="妇保">妇保</option>
+                                <option value="口腔">口腔</option>
+                                <option value="公卫">公卫</option>
+                                <option value="办公室">办公室</option>
+                                <option value="财务">财务</option>
+                                <option value="防保">防保</option>
+                                <option value="药库">药库</option>
+                                <option value="仓库">仓库</option>
+                                <option value="后勤">后勤</option>
+                            </select>
+                        </div>
+                        <div>
+                            <p><b>分管：</b></p>
+                            <select name="" id="personManager">
+                                <option value="">请选择分管领导</option>
+                                <option value="李春娟">李春娟</option>
+                                <option value="段海燕">段海燕</option>
+                                <option value="宋增信">宋增信</option>
+                                <option value="刘长军">刘长军</option>
+                                <option value="徐伟">徐伟</option>
+                                <option value="王雷">王雷</option>
+                            </select>
+                        </div>
+                        <div>
+                            <p><b>状态：</b></p>
+                            <select name="" id="personstatus">
+                                <option value="正常">正常</option>
+                                <option value="假期">假期</option>
+                                <option value="外勤">外勤</option>
+                                <option value="离职">离职</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button id="savePersonBtn"><p style="color: white;"><b>保存</b></p></button>
+                        </div>
+                    </div>
+                    <!-- 批量导入弹窗 -->
+                    <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 20px; border-radius: 8px; width: 500px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3>批量导入人员信息</h3>
+                                <button id="closeModal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <p style="margin-bottom: 10px;">支持格式：.xls, .xlsx</p>
+                                <label style="display: inline-block; padding: 10px 20px; background-color: #0182fa; color: white; border-radius: 6px; cursor: pointer;">
+                                    选择文件
+                                    <input type="file" id="batchFileInput" accept=".xls,.xlsx" style="display: none;">
+                                </label>
+                                <span id="batchFileName" style="margin-left: 10px;"></span>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <button id="downloadTemplate" style="background-color: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                    下载导入模板
+                                </button>
+                            </div>
+                            
+                            <div style="color: #747575; font-size: 14px; margin-bottom: 20px;">
+                                <p>模板说明：</p>
+                                <ul style="margin-top: 5px; padding-left: 20px;">
+                                    <li>第一行为表头，不可修改</li>
+                                    <li>必填字段：工号、姓名、科室、分管领导</li>
+                                    <li>状态可选值：正常、假期、外勤、离职</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                <button id="cancelImport" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">取消</button>
+                                <button id="confirmImport" style="padding: 8px 16px; background-color: #0182fa; color: white; border: none; border-radius: 5px; cursor: pointer;">确认导入</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 导入结果弹窗 -->
+                    <div id="resultModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1001; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 20px; border-radius: 8px; width: 500px; max-height: 80vh; overflow-y: auto;">
+                            <h3 style="margin-top: 0;">导入结果</h3>
+                            <div id="resultContent"></div>
+                            <div style="text-align: right; margin-top: 20px;">
+                                <button id="closeResult" style="padding: 8px 16px; background-color: #0182fa; color: white; border: none; border-radius: 5px; cursor: pointer;">关闭</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="personrecodebox" class="box">
+                    <div class="attendancerecodeheader">
+                        <h3>人员记录表</h3>
+                        <div class="filter-container">
+                            <div class="filter-item">
+                                <label for="person-keyword-filter">关键词搜索</label>
+                                <input type="text" id="person-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="attendancerecodebtn">
+                            <button id="clearPersonFilter">清除筛选</button>
+                            <button id="clearPersonRecode">删除记录</button>
+                            <button id="outputPersonRecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="table-container">
+                        <table border="1">
+                        <thead class="attendancehead">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管领导</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="attendancerulebox" class="box">
+                    <h3>考勤规则制定表</h3>
+                    <div class="customrule">
+                        <div>
+                            <b>规则名称：</b>
+                            <input type="text" id="ruleName">
+                        </div>
+                        <div>
+                            <b>起始时间：</b>
+                            <input type="text" id="ruleFirsttime" placeholder="hh:mm:ss">
+                        </div>
+                        <div>
+                            <b>结束时间：</b>
+                            <input type="text" id="ruleEndtime" placeholder="hh:mm:ss">
+                        </div>
+                        <button class="saveRuleBtn">保存规则</button>
+                    </div>
+                    <div class="rule-table-container">
+                        <table border="1">
+                            <thead class="ruleshowlist">
+                                <tr>
+                                    <th>规则名称</th>
+                                    <th>起始时间</th>
+                                    <th>结束时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ruleTableBody" style="text-align: center;"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="rulequotebox" class="box">
+                    <h3>考勤班次引用表</h3>
+                    <div class="quoterule">
+                        <div style="margin-right: 760px;">
+                            <b>班次名称：</b>
+                            <select name="" id="shiftName">
+                                <option value="夜班">夜班</option>
+                                <option value="下夜班">下夜班</option>
+                                <option value="白班">白班</option>
+                                <option value="中午班">中午班</option>
+                                <option value="上午未考勤">上午未考勤</option>
+                                <option value="下午未考勤">下午未考勤</option>
+                                <option value="全天未考勤">全天未考勤</option>
+                            </select>
+                        </div>
+                        <div>
+                            <b>第一次考勤规则：</b>
+                            <select id="Firsttimerule" class="rule-select"></select>
+                        </div>
+                        <div>
+                            <b>第二次考勤规则：</b>
+                            <select id="Secondtimerule" class="rule-select"></select>
+                        </div>
+                        <div>
+                            <b>第三次考勤规则：</b>
+                            <select id="Thirdtimerule" class="rule-select"></select>
+                        </div>
+                        <div>
+                            <b>第四次考勤规则：</b>
+                            <select id="Fourthtimerule" class="rule-select"></select>
+                        </div>
+                        <button class="saveworkRule">保存班次规则</button>
+                    </div>
+                    <div class="work-table-container">
+                        <table border="1">
+                            <thead class="workruleshowlist">
+                                <tr>
+                                    <th>班次名称</th>
+                                    <th>第一次考勤规则</th>
+                                    <th>第二次考勤规则</th>
+                                    <th>第三次考勤规则</th>
+                                    <th>第四次考勤规则</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workruleTableBody" style="text-align: center;"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="attendancearrangebox" class="box">
+                    <div class="attendancearrangeheader">
+                        <h3>考勤整理记录表</h3>
+                        <button id="generateArrangeTable">生成表格</button>
+                        <input type="date" id="ArrangeStartDate">
+                        <input type="date" id="ArrangeEndDate">
+                        <div class="arrange-filter-container">
+                            <div class="arrange-filter-item">
+                                <label for="arrange-keyword-filter">关键词搜索</label>
+                                <input type="text" id="arrange-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="attendancearrangebtn">
+                            <button id="cleararrangeFilter">清除筛选</button>
+                            <button id="cleararrangeRecode">删除记录</button>
+                            <button id="outputarrangeRecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div class="arrange-table-container">
+                        <table border="1">
+                            <thead class="arrangerecodeshowlist">
+                                <tr>
+                                    <th>日期</th>
+                                    <th>工号</th>
+                                    <th>姓名</th>
+                                    <th>科室</th>
+                                    <th>分管</th>
+                                    <th>状态</th>
+                                    <th>R1</th>
+                                    <th>R2</th>
+                                    <th>R3</th>
+                                    <th>R4</th>
+                                    <th>R5</th>
+                                    <th>R6</th>
+                                    <th>R7</th>
+                                    <th>R8</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arrangeRecodeTableBody" style="text-align: center;"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="mergeRecodebox" class="box">
+                    <div class="mergerecodeheader">
+                        <h3>考勤整理合并页</h3>
+                        <div class="merge-filter-container">
+                            <div class="merge-filter-item">
+                                <label for="merge-keyword-filter">关键词搜索</label>
+                                <input type="text" id="merge-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="mergerecodebtn">
+                            <button id="mergeclearfilter">清除筛选</button>
+                            <button id="mergeclearrecode">删除记录</button>
+                            <button id="mergeoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="merge-table-container">
+                        <table border="1">
+                            <thead class="mergehead">
+                                <tr>
+                                    <th>日期</th>
+                                    <th>工号</th>
+                                    <th>姓名</th>
+                                    <th>科室</th>
+                                    <th>分管</th>
+                                    <th>状态</th>
+                                    <th>考勤时间1</th>
+                                    <th>考勤时间2</th>
+                                    <th>考勤时间3</th>
+                                    <th>考勤时间4</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mergeTableBody" style="text-align: center;"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="mergeEditbox" class="box">
+                    <div class="mergeeditheader">
+                        <h3>考勤合并编辑页</h3>
+                        <button id="generateEditTable">生成数据</button>
+                        <div class="edit-filter-container">
+                            <div class="edit-filter-item">
+                                <label for="edit-keyword-filter">关键词搜索</label>
+                                <input type="text" id="edit-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="mergeeditbtn">
+                            <button id="editclearfilter">清除筛选</button>
+                            <button id="editclearrecode">删除记录</button>
+                            <button id="editoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="edit-table-container">
+                        <table border="1">
+                        <thead class="mergeEdithead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mergeEditTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <!-- 编辑弹窗 -->
+                <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; width: 900px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>编辑考勤记录</h3>
+                            <button id="closeEditModal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                        </div>
+                        <div class="register" style="gap: 20px;">
+                            <input type="hidden" id="editRecordId">
+                            <div>
+                                <p><b>日期：</b></p>
+                                <input type="text" id="editDate">
+                            </div>
+                            <div>
+                                <p><b>工号：</b></p>
+                                <input type="text" id="editPersonId">
+                            </div>
+                            <div>
+                                <p><b>姓名：</b></p>
+                                <input type="text" id="editName">
+                            </div>
+                            <div>
+                                <p><b>科室：</b></p>
+                                <input type="text" id="editDepartment">
+                            </div>
+                            <div>
+                                <p><b>分管：</b></p>
+                                <input type="text" id="editManager">
+                            </div>
+                            <div>
+                                <p><b>状态：</b></p>
+                                <input type="text" id="editStatus">
+                            </div>
+                            <div>
+                                <p><b>考勤时间1：</b></p>
+                                <input type="text" id="editTime1">
+                            </div>
+                            <div>
+                                <p><b>考勤时间2：</b></p>
+                                <input type="text" id="editTime2">
+                            </div>
+                            <div>
+                                <p><b>考勤时间3：</b></p>
+                                <input type="text" id="editTime3">
+                            </div>
+                            <div>
+                                <p><b>考勤时间4：</b></p>
+                                <input type="text" id="editTime4">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                            <button id="cancelEdit" style="padding: 8px 16px; background-color: #9e200a; color: white; border: none;  border-radius: 5px; cursor: pointer;">取消</button>
+                            <button id="saveEdit" style="padding: 8px 16px; background-color: #0182fa; color: white; border: none; border-radius: 5px; cursor: pointer;">保存</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="lichunjuanSectionbox" class="box">
+                    <div class="lcjheader">
+                        <h3>李春娟部门页</h3>
+                        <button id="generatelcjTable">生成数据</button>
+                        <div class="lcj-filter-container">
+                            <div class="lcj-filter-item">
+                                <label for="lcj-keyword-filter">关键词搜索</label>
+                                <input type="text" id="lcj-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="lcjbtn">
+                            <button id="lcjclearfilter">清除筛选</button>
+                            <button id="lcjclearrecode">删除记录</button>
+                            <button id="lcjoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="lcj-table-container">
+                        <table border="1">
+                        <thead class="lcjhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lcjTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="songzengxinSectionbox" class="box">
+                    <div class="szxheader">
+                        <h3>宋增信部门页</h3>
+                        <button id="generateszxTable">生成数据</button>
+                        <div class="szx-filter-container">
+                            <div class="szx-filter-item">
+                                <label for="szx-keyword-filter">关键词搜索</label>
+                                <input type="text" id="szx-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="szxbtn">
+                            <button id="szxclearfilter">清除筛选</button>
+                            <button id="szxclearrecode">删除记录</button>
+                            <button id="szxoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="szx-table-container">
+                        <table border="1">
+                        <thead class="szxhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="szxTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="liuchangjunSectionbox" class="box">
+                    <div class="lcjunheader">
+                        <h3>刘长军部门页</h3>
+                        <button id="generatelcjunTable">生成数据</button>
+                        <div class="lcjun-filter-container">
+                            <div class="lcjun-filter-item">
+                                <label for="lcjun-keyword-filter">关键词搜索</label>
+                                <input type="text" id="lcjun-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="lcjunbtn">
+                            <button id="lcjunclearfilter">清除筛选</button>
+                            <button id="lcjunclearrecode">删除记录</button>
+                            <button id="lcjunoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="lcjun-table-container">
+                        <table border="1">
+                        <thead class="lcjunhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lcjunTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="duanhaiyanSectionbox" class="box">
+                    <div class="dhyheader">
+                        <h3>段海燕部门页</h3>
+                        <button id="generatedhyTable">生成数据</button>
+                        <div class="dhy-filter-container">
+                            <div class="dhy-filter-item">
+                                <label for="dhy-keyword-filter">关键词搜索</label>
+                                <input type="text" id="dhy-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="dhybtn">
+                            <button id="dhyclearfilter">清除筛选</button>
+                            <button id="dhyclearrecode">删除记录</button>
+                            <button id="dhyoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="dhy-table-container">
+                        <table border="1">
+                        <thead class="dhyhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dhyTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="xuweiSectionbox" class="box">
+                    <div class="xwheader">
+                        <h3>徐伟部门页</h3>
+                        <button id="generatexwTable">生成数据</button>
+                        <div class="xw-filter-container">
+                            <div class="xw-filter-item">
+                                <label for="xw-keyword-filter">关键词搜索</label>
+                                <input type="text" id="xw-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="xwbtn">
+                            <button id="xwclearfilter">清除筛选</button>
+                            <button id="xwclearrecode">删除记录</button>
+                            <button id="xwoutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="xw-table-container">
+                        <table border="1">
+                        <thead class="xwhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="xwTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="wangleiSectionbox" class="box">
+                    <div class="wlheader">
+                        <h3>王雷部门页</h3>
+                        <button id="generatewlTable">生成数据</button>
+                        <div class="wl-filter-container">
+                            <div class="wl-filter-item">
+                                <label for="wl-keyword-filter">关键词搜索</label>
+                                <input type="text" id="wl-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="wlbtn">
+                            <button id="wlclearfilter">清除筛选</button>
+                            <button id="wlclearrecode">删除记录</button>
+                            <button id="wloutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="wl-table-container">
+                        <table border="1">
+                        <thead class="wlhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wlTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="lichunjuanRecordbox" class="box">
+                    <div class="lcjrheader">
+                        <h3>李春娟结果页</h3>
+                        <button id="generatelcjrTable">生成数据</button>
+                        <div class="lcjr-filter-container">
+                            <div class="lcjr-filter-item">
+                                <label for="lcjr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="lcjr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="lcjrbtn">
+                            <button id="lcjrclearfilter">清除筛选</button>
+                            <button id="lcjrclearrecode">删除记录</button>
+                            <button id="lcjroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="lcjr-table-container">
+                        <table border="1">
+                        <thead class="lcjrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lcjrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="songzengxinRecordbox" class="box">
+                    <div class="szxrheader">
+                        <h3>宋增信结果页</h3>
+                        <button id="generateszxrTable">生成数据</button>
+                        <div class="szxr-filter-container">
+                            <div class="szxr-filter-item">
+                                <label for="szxr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="szxr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="szxrbtn">
+                            <button id="szxrclearfilter">清除筛选</button>
+                            <button id="szxrclearrecode">删除记录</button>
+                            <button id="szxroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="szxr-table-container">
+                        <table border="1">
+                        <thead class="szxrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="szxrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="liuchangjunRecordbox" class="box">
+                    <div class="lcjunrheader">
+                        <h3>刘长军结果页</h3>
+                        <button id="generatelcjunrTable">生成数据</button>
+                        <div class="lcjunr-filter-container">
+                            <div class="lcjunr-filter-item">
+                                <label for="lcjunr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="lcjunr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="lcjunrbtn">
+                            <button id="lcjunrclearfilter">清除筛选</button>
+                            <button id="lcjunrclearrecode">删除记录</button>
+                            <button id="lcjunroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="lcjunr-table-container">
+                        <table border="1">
+                        <thead class="lcjunrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lcjunrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="duanhaiyanRecordbox" class="box">
+                    <div class="dhyrheader">
+                        <h3>段海燕结果页</h3>
+                        <button id="generatedhyrTable">生成数据</button>
+                        <div class="dhyr-filter-container">
+                            <div class="dhyr-filter-item">
+                                <label for="dhyr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="dhyr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="dhyrbtn">
+                            <button id="dhyrclearfilter">清除筛选</button>
+                            <button id="dhyrclearrecode">删除记录</button>
+                            <button id="dhyroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="dhyr-table-container">
+                        <table border="1">
+                        <thead class="dhyrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dhyrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="xuweiRecordbox" class="box">
+                    <div class="xwrheader">
+                        <h3>徐伟结果页</h3>
+                        <button id="generatexwrTable">生成数据</button>
+                        <div class="xwr-filter-container">
+                            <div class="xwr-filter-item">
+                                <label for="xwr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="xwr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="xwrbtn">
+                            <button id="xwrclearfilter">清除筛选</button>
+                            <button id="xwrclearrecode">删除记录</button>
+                            <button id="xwroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="xwr-table-container">
+                        <table border="1">
+                        <thead class="xwrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="xwrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="wangleiRecordbox" class="box">
+                    <div class="wlrheader">
+                        <h3>王雷结果页</h3>
+                        <button id="generatewlrTable">生成数据</button>
+                        <div class="wlr-filter-container">
+                            <div class="wlr-filter-item">
+                                <label for="wlr-keyword-filter">关键词搜索</label>
+                                <input type="text" id="wlr-keyword-filter" placeholder="输入关键词">
+                            </div>
+                        </div>
+                        <div class="wlrbtn">
+                            <button id="wlrclearfilter">清除筛选</button>
+                            <button id="wlrclearrecode">删除记录</button>
+                            <button id="wlroutputrecode">导出记录</button>
+                        </div>  
+                    </div>
+                    <div  class="wlr-table-container">
+                        <table border="1">
+                        <thead class="wlrhead">
+                            <tr>
+                                <th>日期</th>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>分管</th>
+                                <th>状态</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>班次类型</th>
+                                <th>考勤1问题</th>
+                                <th>考勤2问题</th>
+                                <th>考勤3问题</th>
+                                <th>考勤4问题</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wlrTableBody" style="text-align: center;"></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div id="resulerecodebox" class="box">
+                    <p>8</p>
+                </div>
+            </div>
+        </main>    
+    </div>
+    <div class="footer">
+        <p>© 2025 Attendance Steward | Make your work to be ease</p>
+    </div>
+ 
+    <script>
+        const buttons = document.querySelectorAll('.dh button');
+        const boxes = document.querySelectorAll('.box');
+        const attendanceTableBody = document.getElementById('attendanceTableBody');
+        const clearRecodeBtn = document.getElementById('clearrecode');
+        const outputRecodeBtn = document.getElementById('outputrecode');
+        const keywordFilter = document.getElementById('keyword-filter');
+        const clearFilterBtn = document.getElementById('clearfilter'); 
+
+        // 人员管理相关元素
+        const savePersonBtn = document.getElementById('savePersonBtn');
+        const personTableBody = document.getElementById('personTableBody');
+        const personKeywordFilter = document.getElementById('person-keyword-filter');
+        const clearPersonFilterBtn = document.getElementById('clearPersonFilter');
+        const clearPersonRecodeBtn = document.getElementById('clearPersonRecode');
+        const outputPersonRecodeBtn = document.getElementById('outputPersonRecode');
+
+        let currentFilteredData = [];
+        let currentFilteredPersons = [];
+ 
+        buttons.forEach(button => {
+            button.addEventListener('click', function () {
+                buttons.forEach(btn => { 
+                    btn.classList.remove('tab-active');
+                });
+                boxes.forEach(box => {
+                    box.classList.remove('active');
+                });
+ 
+                this.classList.add('tab-active');
+                const targetId = this.dataset.tab;
+                const targetBox = document.getElementById(targetId);
+                targetBox.classList.add('active');
+
+                localStorage.setItem('activeTab', targetId);
+
+                // 切换到人员记录表时刷新数据
+                if (targetId === 'personrecodebox') {
+                    loadPersonDataFromLocalStorage();
+                }
+            });
+        });
+
+        // 规则管理相关元素
+        const saveRuleBtn = document.querySelector('.saveRuleBtn');
+        const ruleNameInput = document.getElementById('ruleName');
+        const ruleFirsttimeInput = document.getElementById('ruleFirsttime');
+        const ruleEndtimeInput = document.getElementById('ruleEndtime');
+        const ruleTableBody = document.getElementById('ruleTableBody');
+        // 班次规则相关元素
+        const saveWorkRuleBtn = document.querySelector('.saveworkRule');
+        const shiftNameSelect = document.getElementById('shiftName');
+        const firstTimeRuleSelect = document.getElementById('Firsttimerule');
+        const secondTimeRuleSelect = document.getElementById('Secondtimerule');
+        const thirdTimeRuleSelect = document.getElementById('Thirdtimerule');
+        const fourthTimeRuleSelect = document.getElementById('Fourthtimerule');
+        const workruleTableBody = document.getElementById('workruleTableBody');
+
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saveTab = localStorage.getItem('activeTab');
+
+            if(saveTab && document.getElementById(saveTab)) {
+                buttons.forEach(btn => btn.classList.remove('tab-active'));
+                boxes.forEach(box => box.classList.remove('active'));
+
+                document.getElementById(saveTab).classList.add('active');
+                buttons.forEach(button => {
+                    if (button.dataset.tab === saveTab) {
+                        button.classList.add('tab-active')
+                    }
+                })
+            }
+
+            loadAttendanceDataFromLocalStorage();
+            loadPersonDataFromLocalStorage();
+            
+            // 考勤记录事件绑定
+            clearRecodeBtn.addEventListener('click', clearAttendanceRecords);
+            outputRecodeBtn.addEventListener('click', exportToExcel);
+            clearFilterBtn.addEventListener('click', clearFilters);
+            keywordFilter.addEventListener('input', applyFilters);
+
+            // 人员管理事件绑定
+            savePersonBtn.addEventListener('click', savePersonInfo);
+            clearPersonFilterBtn.addEventListener('click', clearPersonFilters);
+            clearPersonRecodeBtn.addEventListener('click', clearPersonRecords);
+            outputPersonRecodeBtn.addEventListener('click', exportPersonToExcel);
+            personKeywordFilter.addEventListener('input', applyPersonFilters);
+
+            currentFilteredData = getAttendanceDataFromLocalStorage();
+            currentFilteredPersons = getPersonDataFromLocalStorage();
+
+            // 加载规则数据
+            loadRuleDataFromLocalStorage();
+            
+            // 绑定规则相关事件
+            saveRuleBtn.addEventListener('click', saveAttendanceRule);
+
+            // 初始化规则选择框
+            initRuleSelects();
+            
+            // 绑定班次规则相关事件
+            saveWorkRuleBtn.addEventListener('click', saveWorkRule);
+            
+            // 当规则数据更新时重新加载选择框
+            // 可以在保存规则的函数中调用initRuleSelects()
+            // 加载班次规则数据
+            loadWorkRuleDataFromLocalStorage();
+        });
+
+        // 添加编辑和删除函数（供表格调用）
+        function editWorkRule(id) {
+            const workRules = getWorkRuleDataFromLocalStorage();
+            const rule = workRules.find(r => r.id === id);
+            if (rule) {
+                shiftNameSelect.value = rule.shiftName;
+                firstTimeRuleSelect.value = rule.firstRuleId;
+                secondTimeRuleSelect.value = rule.secondRuleId;
+                thirdTimeRuleSelect.value = rule.thirdRuleId;
+                fourthTimeRuleSelect.value = rule.fourthRuleId;
+            }
+        }
+
+        function deleteWorkRule(id) {
+            if (confirm('确定要删除这个班次规则吗？')) {
+                let workRules = getWorkRuleDataFromLocalStorage();
+                workRules = workRules.filter(r => r.id !== id);
+                saveWorkRuleDataToLocalStorage(workRules);
+                loadWorkRuleDataFromLocalStorage();
+                showStatus('班次规则已删除', 'success');
+            }
+        }
+
+        // 初始化规则选择框选项
+        function initRuleSelects() {
+            const rules = getRuleDataFromLocalStorage();
+            const ruleSelects = document.querySelectorAll('.rule-select');
+            
+            // 清空所有选择框
+            ruleSelects.forEach(select => {
+                select.innerHTML = '<option value="">请选择规则</option>';
+            });
+            
+            // 为每个选择框添加规则选项
+            if (rules.length > 0) {
+                rules.forEach(rule => {
+                    ruleSelects.forEach(select => {
+                        const option = document.createElement('option');
+                        option.value = rule.id; // 使用规则ID作为值
+                        option.textContent = rule.name; // 显示规则名称
+                        select.appendChild(option);
+                    });
+                });
+            }
+        }
+
+        // 保存班次规则
+        function saveWorkRule() {
+            const shiftName = shiftNameSelect.value;
+            const firstRuleId = firstTimeRuleSelect.value;
+            const secondRuleId = secondTimeRuleSelect.value;
+            const thirdRuleId = thirdTimeRuleSelect.value;
+            const fourthRuleId = fourthTimeRuleSelect.value;
+            
+            // 验证班次名称
+            if (!shiftName) {
+                showStatus('请选择班次名称', 'error');
+                return;
+            }
+            
+            // 获取所有规则数据用于验证和显示
+            const allRules = getRuleDataFromLocalStorage();
+            
+            // 保存班次规则到本地存储
+            const workRules = getWorkRuleDataFromLocalStorage();
+            
+            // 查找规则名称（用于显示）
+            const getRuleName = (ruleId) => {
+                const rule = allRules.find(r => r.id === ruleId);
+                return rule ? rule.name : '';
+            };
+            
+            // 创建班次规则对象
+            const newWorkRule = {
+                id: Date.now().toString(),
+                shiftName,
+                firstRuleId,
+                firstRuleName: getRuleName(firstRuleId),
+                secondRuleId,
+                secondRuleName: getRuleName(secondRuleId),
+                thirdRuleId,
+                thirdRuleName: getRuleName(thirdRuleId),
+                fourthRuleId,
+                fourthRuleName: getRuleName(fourthRuleId),
+                createTime: new Date().toLocaleString()
+            };
+            
+            // 检查是否已存在相同班次的规则
+            const existingIndex = workRules.findIndex(rule => rule.shiftName === shiftName);
+            if (existingIndex > -1) {
+                // 更新现有规则
+                workRules[existingIndex] = {
+                    ...workRules[existingIndex],
+                    firstRuleId,
+                    firstRuleName: getRuleName(firstRuleId),
+                    secondRuleId,
+                    secondRuleName: getRuleName(secondRuleId),
+                    thirdRuleId,
+                    thirdRuleName: getRuleName(thirdRuleId),
+                    fourthRuleId,
+                    fourthRuleName: getRuleName(fourthRuleId),
+                    updateTime: new Date().toLocaleString()
+                };
+            } else {
+                // 创建新的班次规则对象
+                const newWorkRule = {
+                    id: Date.now().toString(),
+                    shiftName,
+                    firstRuleId,
+                    firstRuleName: getRuleName(firstRuleId),
+                    secondRuleId,
+                    secondRuleName: getRuleName(secondRuleId),
+                    thirdRuleId,
+                    thirdRuleName: getRuleName(thirdRuleId),
+                    fourthRuleId,
+                    fourthRuleName: getRuleName(fourthRuleId),
+                    createTime: new Date().toLocaleString()
+                };
+                workRules.push(newWorkRule);
+            }
+            
+            // 保存到本地存储
+            saveWorkRuleDataToLocalStorage(workRules);
+            
+            // 刷新班次规则表格
+            loadWorkRuleDataFromLocalStorage();
+            
+            // 显示成功信息
+            showStatus('班次规则保存成功', 'success');
+        }
+
+        // 班次规则本地存储操作
+        function saveWorkRuleDataToLocalStorage(data) {
+            try {
+                localStorage.setItem('workRules', JSON.stringify(data));
+            } catch (error) {
+                console.error('保存班次规则数据失败:', error);
+                showStatus('保存班次规则失败，请重试', 'error');
+            }
+        }
+
+        function getWorkRuleDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('workRules');
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('获取班次规则数据失败:', error);
+                return [];
+            }
+        }
+
+        // 保存班次规则数据到本地存储
+        function saveWorkRuleDataToLocalStorage(rules) {
+            localStorage.setItem('workRules', JSON.stringify(rules));
+        }
+
+        function loadWorkRuleDataFromLocalStorage() {
+            const workRules = getWorkRuleDataFromLocalStorage();
+            const tableBody = document.getElementById('workruleTableBody');
+            tableBody.innerHTML = ''; // 清空表格
+            
+            if (workRules.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="6" style="text-align: center;">暂无班次规则数据</td>';
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // 遍历数据并创建表格行
+            workRules.forEach(rule => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${rule.shiftName}</td>
+                    <td>${rule.firstRuleName || '-'}</td>
+                    <td>${rule.secondRuleName || '-'}</td>
+                    <td>${rule.thirdRuleName || '-'}</td>
+                    <td>${rule.fourthRuleName || '-'}</td>
+                    <td>
+                        <button onclick="editWorkRule('${rule.id}')" style="margin-right:5px; background-color: #0182fa; border-style: none; border-radius: 5px; color: white; width: 50px; margin-bottom:1.5px;">编辑</button>
+                        <button onclick="deleteWorkRule('${rule.id}')" style="margin-right:5px; background-color: #d10909; border-style: none; border-radius: 5px; color: white; width: 50px; margin-bottom:1.5px;">删除</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 填充班次规则表格
+        function populateWorkRuleTable(data) {
+            workruleTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="6">暂无班次规则记录</td>';
+                workruleTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.forEach(rule => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${rule.shiftName}</td>
+                    <td>${rule.firstRuleName || ''}</td>
+                    <td>${rule.secondRuleName || ''}</td>
+                    <td>${rule.thirdRuleName || ''}</td>
+                    <td>${rule.fourthRuleName || ''}</td>
+                    <td>
+                        <button onclick="deleteWorkRule('${rule.id}')" style="background-color: #d10909; border-style: none; border-radius: 5px; color: white; width: 50px;">删除</button>
+                    </td>
+                `;
+                
+                workruleTableBody.appendChild(row);
+            });
+        }
+
+        // 删除班次规则
+        function deleteWorkRule(id) {
+            if (confirm('确定要删除这个班次规则吗？')) {
+                const workRules = getWorkRuleDataFromLocalStorage();
+                const updatedRules = workRules.filter(rule => rule.id !== id);
+                saveWorkRuleDataToLocalStorage(updatedRules);
+                loadWorkRuleDataFromLocalStorage();
+                showStatus('班次规则已删除', 'success');
+            }
+        }
+
+        // 在保存考勤规则的函数末尾添加刷新选择框的代码
+        function saveAttendanceRule() {
+            // 已有的代码...
+            
+            // 刷新规则选择框
+            initRuleSelects();
+        }
+        // 规则数据本地存储操作
+        function saveRuleDataToLocalStorage(data) {
+            try {
+                localStorage.setItem('attendanceRules', JSON.stringify(data));
+            } catch (error) {
+                console.error('保存规则数据失败:', error);
+                showStatus('保存规则失败，请重试', 'error');
+            }
+        }
+
+        function getRuleDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('attendanceRules');
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('获取规则数据失败:', error);
+                return [];
+            }
+        }
+
+        function loadRuleDataFromLocalStorage() {
+            const data = getRuleDataFromLocalStorage();
+            populateRuleTable(data);
+        }
+
+        // 填充规则表格
+        function populateRuleTable(data) {
+            ruleTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="4">暂无规则记录</td>';
+                ruleTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.forEach(rule => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${rule.name}</td>
+                    <td>${rule.startTime}</td>
+                    <td>${rule.endTime}</td>
+                    <td>
+                        <button onclick="deleteRule('${rule.id}')" style="background-color: #d10909; border-style: none; border-radius: 5px; color: white; width: 50px;">删除</button>
+                    </td>
+                `;
+                
+                ruleTableBody.appendChild(row);
+            });
+        }
+
+        // 保存考勤规则
+        function saveAttendanceRule() {
+            // 获取表单数据
+            const ruleName = ruleNameInput.value.trim();
+            const firstTime = ruleFirsttimeInput.value;
+            const endTime = ruleEndtimeInput.value;
+
+            // 表单验证
+            if (!ruleName) {
+                showStatus('请输入规则名称', 'error');
+                return;
+            }
+            if (!firstTime) {
+                showStatus('请选择起始时间', 'error');
+                return;
+            }
+            if (!endTime) {
+                showStatus('请选择结束时间', 'error');
+                return;
+            }
+
+            // 时间格式验证 (hh:mm:ss)
+            const timeRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+            if (!timeRegex.test(firstTime)) {
+                showStatus('起始时间格式错误，请使用hh:mm:ss', 'error');
+                return;
+            }
+            if (!timeRegex.test(endTime)) {
+                showStatus('结束时间格式错误，请使用hh:mm:ss', 'error');
+                return;
+            }
+            
+            // 验证时间有效性
+            if (firstTime >= endTime) {
+                showStatus('起始时间不能晚于结束时间', 'error');
+                return;
+            }
+
+            // 检查规则名称是否已存在
+            const existingRules = getRuleDataFromLocalStorage();
+            const isDuplicate = existingRules.some(rule => rule.name === ruleName);
+            if (isDuplicate) {
+                showStatus('该规则名称已存在，请使用其他名称', 'error');
+                return;
+            }
+
+            // 创建规则对象
+            const newRule = {
+                id: Date.now().toString(), // 使用时间戳作为唯一ID
+                name: ruleName,
+                startTime: firstTime,
+                endTime: endTime,
+                createTime: new Date().toLocaleString()
+            };
+
+            // 保存到本地存储
+            existingRules.push(newRule);
+            saveRuleDataToLocalStorage(existingRules);
+
+            // 刷新规则表格
+            loadRuleDataFromLocalStorage();
+
+            // 显示成功信息并清空表单
+            showStatus('考勤规则保存成功', 'success');
+            ruleNameInput.value = '';
+            ruleFirsttimeInput.value = '';
+            ruleEndtimeInput.value = '';
+        }
+
+        // 删除规则
+        window.deleteRule = function(id) {
+            if (confirm('确定要删除这条规则吗？')) {
+                const allRules = getRuleDataFromLocalStorage();
+                const newRules = allRules.filter(rule => rule.id !== id);
+                saveRuleDataToLocalStorage(newRules);
+                loadRuleDataFromLocalStorage();
+                showStatus('规则已删除', 'success');
+            }
+        }
+
+        // 人员信息保存功能
+        function savePersonInfo() {
+            // 获取表单数据
+            const name = document.getElementById('personName').value.trim();
+            const id = document.getElementById('personId').value.trim();
+            const department = document.getElementById('personDepartment').value;
+            const manager = document.getElementById('personManager').value;
+            const pstatus = document.getElementById('personstatus').value;
+
+            // 表单验证
+            if (!name) {
+                showStatus('请输入姓名', 'error');
+                return;
+            }
+            if (!id) {
+                showStatus('请输入工号', 'error');
+                return;
+            }
+            if (!department) {
+                showStatus('请选择科室', 'error');
+                return;
+            }
+            if (!manager) {
+                showStatus('请选择分管领导', 'error');
+                return;
+            }
+            if (!personstatus) {
+                showStatus('请填写人员状态', 'error');
+                return;
+            }
+
+            // 检查工号是否已存在
+            const existingPersons = getPersonDataFromLocalStorage();
+            const isDuplicate = existingPersons.some(person => person.id === id);
+            if (isDuplicate) {
+                showStatus('该工号已存在，请使用其他工号', 'error');
+                return;
+            }
+
+            // 创建人员信息对象
+            const personInfo = {
+                id,
+                name,
+                department,
+                manager,
+                pstatus,
+                createTime: new Date().toLocaleString()
+            };
+
+            // 保存到本地存储
+            existingPersons.push(personInfo);
+            savePersonDataToLocalStorage(existingPersons);
+
+            // 刷新人员记录表
+            loadPersonDataFromLocalStorage();
+
+            // 显示成功信息并清空表单
+            showStatus('人员信息保存成功', 'success');
+            document.getElementById('personName').value = '';
+            document.getElementById('personId').value = '';
+            document.getElementById('personDepartment').value = '';
+            document.getElementById('personManager').value = '';
+            document.getElementById('personstatus').value = '正常';
+
+            // 自动切换到人员记录表
+            // document.getElementById('personrecode').click();
+        }
+
+        // 人员数据本地存储操作
+        function savePersonDataToLocalStorage(data) {
+            try {
+                localStorage.setItem('personData', JSON.stringify(data));
+            } catch (error) {
+                console.error('保存人员数据失败:', error);
+                showStatus('保存人员信息失败，请重试', 'error');
+            }
+        }
+
+        function getPersonDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('personData');
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('获取人员数据失败:', error);
+                return [];
+            }
+        }
+
+        function loadPersonDataFromLocalStorage() {
+            const data = getPersonDataFromLocalStorage();
+            const sortedData = [...data].sort((a, b) => {
+                const numA = Number(a.id);
+                const numB = Number(b.id);
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return numA - numB; // 数字排序
+                } else {
+                    return a.id.localeCompare(b.id); // 字符串排序
+                }
+            });
+            currentFilteredPersons = sortedData;
+            populatePersonTable(sortedData);
+        }
+
+        // 填充人员表格
+        function populatePersonTable(data) {
+            personTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="5">暂无人员记录</td>';
+                personTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.forEach((person, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${person.id}</td>
+                    <td>${person.name}</td>
+                    <td>${person.department}</td>
+                    <td>${person.manager}</td>
+                    <td>${person.pstatus}</td>
+                    <td>
+                        <button onclick="editPerson('${person.id}')" style="margin-right:5px; background-color: #0182fa; border-style: none; border-radius: 5px; color: white; width: 50px; margin-bottom:1.5px;">编辑</button>
+                        <button onclick="deletePerson('${person.id}')" style=" background-color: #d10909; border-style: none; border-radius: 5px; color: white; width: 50px;">删除</button>
+                    </td>
+                `;
+                
+                personTableBody.appendChild(row);
+            });
+        }
+
+        // 人员筛选功能
+        function applyPersonFilters() {
+            const keyword = personKeywordFilter.value.trim().toLowerCase();
+            
+            const allData = getPersonDataFromLocalStorage();
+            
+            const filteredData = allData.filter(person => {
+                if (keyword) {
+                    const matchesName = person.name.toLowerCase().includes(keyword);
+                    const matchesId = person.id.toLowerCase().includes(keyword);
+                    const matchesDept = person.department.toLowerCase().includes(keyword);
+                    
+                    return matchesName || matchesId || matchesDept;
+                }
+                return true;
+            });
+            
+            currentFilteredPersons = filteredData;
+            populatePersonTable(filteredData);
+            
+            showStatus(`筛选成功，共找到 ${filteredData.length} 条记录`, 'success');
+        }
+
+        function clearPersonFilters() {
+            personKeywordFilter.value = '';
+            const allData = getPersonDataFromLocalStorage();
+            currentFilteredPersons = allData;
+            populatePersonTable(allData);
+            showStatus('筛选已清除，显示所有人员记录', 'success');
+        }
+
+        // 人员记录删除功能
+        function clearPersonRecords() {
+            if (confirm('确定要删除所有人员记录吗？此操作不可恢复。')) {
+                localStorage.removeItem('personData');
+                personTableBody.innerHTML = '';
+                personKeywordFilter.value = '';
+                currentFilteredPersons = [];
+                populatePersonTable([]);
+                showStatus('所有人员记录已清除', 'success');
+            }
+        }
+
+        // 删除单个人员
+        function deletePerson(id) {
+            if (confirm('确定要删除这条人员记录吗？')) {
+                const allData = getPersonDataFromLocalStorage();
+                const newData = allData.filter(person => person.id !== id);
+                savePersonDataToLocalStorage(newData);
+                currentFilteredPersons = newData;
+                populatePersonTable(newData);
+                showStatus('人员记录已删除', 'success');
+            }
+        }
+
+        // 编辑人员信息（简化版）
+        function editPerson(id) {
+            const allData = getPersonDataFromLocalStorage();
+            const person = allData.find(p => p.id === id);
+            if (!person) return;
+
+            // 填充到表单
+            document.getElementById('personName').value = person.name;
+            document.getElementById('personId').value = person.id;
+            document.getElementById('personDepartment').value = person.department;
+            document.getElementById('personManager').value = person.manager;
+            document.getElementById('personstatus').value = person.pstatus;
+
+            // 切换到人员登记页
+            document.getElementById('personregister').click();
+
+            // 删除原记录（后续保存会新增，实现编辑效果）
+            const newData = allData.filter(p => p.id !== id);
+            savePersonDataToLocalStorage(newData);
+
+        }
+
+        // 导出人员记录到Excel
+        function exportPersonToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showStatus('Excel库加载失败，请重试', 'error');
+                return;
+            }
+            
+            if (currentFilteredPersons.length === 0) {
+                showStatus('没有可导出的人员记录', 'error');
+                return;
+            }
+            
+            const exportData = currentFilteredPersons.map(person => ({
+                '工号': person.id,
+                '姓名': person.name,
+                '科室': person.department,
+                '分管领导': person.manager,
+                '状态': person.pstatus,
+                '登记时间': person.createTime
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "人员记录");
+            
+            const today = new Date();
+            const fileName = `人员记录_${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}.xlsx`;
+            
+            XLSX.writeFile(wb, fileName);
+            showStatus('人员记录已成功导出为Excel文件', 'success');
+        }
+
+        // 以下为原有功能代码（保持不变）
+        function clearFilters() {
+            keywordFilter.value = '';
+            const allData = getAttendanceDataFromLocalStorage();
+            currentFilteredData = allData;
+            populateAttendanceTable(allData);
+            showStatus('筛选已清除，显示所有记录', 'success');
+        }
+
+        const fileInput = document.getElementById('up-txt')
+        const fileNameElement = document.getElementById('fileName')
+        const uploadConfirm = document.getElementById('uploadConfirm')
+        const uploadStatus = document.getElementById('uploadStatus')
+
+        fileInput.accept = ".txt,.xlsx";
+
+        fileInput.addEventListener('change', function(e) {
+            if(this.files && this.files.length > 0) {
+                fileNameElement.textContent = this.files[0].name;
+                uploadStatus.style.display = 'none';
+            } else {
+                fileNameElement.textContent = '';
+            }
+        });
+
+        uploadConfirm.addEventListener('click', function() {
+            if(!fileInput.files || fileInput.files.length === 0) {
+                showStatus('请先选择文件', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            if(file.size >10*1024*1024) {
+                showStatus('文件大小超过10MB，请重新选择', 'error');
+                return;
+            }
+
+            const allowedTypes = ['.txt', '.xlsx'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            if(!allowedTypes.includes(fileExtension)) {
+                showStatus('文件格式不正确，请选择txt或xlsx格式', 'error');
+                return;
+            }
+
+            if(fileExtension === '.txt') {
+                showStatus('文件正在上传处理中，请稍候', 'success');
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const uint8Array = new Uint8Array(e.target.result);
+                        const decoder = new TextDecoder('gbk');
+                        const content = decoder.decode(uint8Array)
+                        const attendanceData = parseAttendanceData(content);
+                        populateAttendanceTable(attendanceData);
+
+                        const existingData = getAttendanceDataFromLocalStorage();
+                        const mergedData = mergeAttendanceData(existingData, attendanceData);
+                        
+                        saveAttendanceDataToLocalStorage(mergedData);
+                        
+                        populateAttendanceTable(mergedData);
+                                                
+                        // document.getElementById('attendancerecode').click();
+
+                        showStatus('文件正在上传，请稍候', 'success');
+
+                        setTimeout(() => {
+                            showStatus(`文件 "${file.name}" 上传成功`, 'success')
+                            fileInput.value = '';
+                            fileNameElement.textContent = '';
+                        }, 500);
+                    } catch (error) {
+                        showStatus('文件处理错误: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                showStatus('XLSX文件处理功能尚未实现', 'error');
+            }
+        });
+
+        function parseAttendanceData(content) {
+            const lines = content.split('\n');
+            const attendanceMap = new Map();
+            
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                
+                const timeMatch = line.match(/time="([^"]+)"/);
+                const idMatch = line.match(/id="([^"]+)"/);
+                const nameMatch = line.match(/name="([^"]+)"/);
+                
+                if (!timeMatch || !idMatch || !nameMatch) {
+                    throw new Error(`无效的行格式: ${line}`);
+                }
+                
+                const fullTime = timeMatch[1];
+                const [date, time] = fullTime.split(' ');
+                const id = idMatch[1];
+                const name = nameMatch[1];
+                
+                const key = `${date}-${id}`;
+                
+                if (!attendanceMap.has(key)) {
+                    attendanceMap.set(key, {
+                        date,
+                        id,
+                        name,
+                        times: []
+                    });
+                }
+                
+                attendanceMap.get(key).times.push(time);
+                attendanceMap.get(key).times.sort((a, b) => {
+                    return new Date(`1970-01-01 ${a}`) - new Date(`1970-01-01 ${b}`);
+                });
+            });
+            
+            return Array.from(attendanceMap.values()).sort((a, b) => {
+                if (a.date !== b.date) {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                return a.id.localeCompare(b.id, undefined, { numeric: true });
+            });
+        }
+
+        function populateAttendanceTable(data) {
+            attendanceTableBody.innerHTML = '';
+            
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                
+                const dateCell = document.createElement('td');
+                dateCell.textContent = record.date;
+                row.appendChild(dateCell);
+                
+                const idCell = document.createElement('td');
+                idCell.textContent = record.id;
+                row.appendChild(idCell);
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = record.name;
+                row.appendChild(nameCell);
+                
+                for (let i = 0; i < 10; i++) {
+                    const timeCell = document.createElement('td');
+                    timeCell.textContent = record.times[i] || '';
+                    row.appendChild(timeCell);
+                }
+                
+                attendanceTableBody.appendChild(row);
+            });
+        }
+
+        function saveAttendanceDataToLocalStorage(data) {
+            try {
+                localStorage.setItem('attendanceData', JSON.stringify(data));
+            } catch (error) {
+                console.error('保存考勤数据失败:', error);
+                showStatus('保存记录失败，请重试', 'error');
+            }
+        }
+
+        function getAttendanceDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('attendanceData');
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('获取考勤数据失败:', error);
+                return [];
+            }
+        }
+
+        function loadAttendanceDataFromLocalStorage() {
+            const data = getAttendanceDataFromLocalStorage();
+            populateAttendanceTable(data);
+        }
+
+        function mergeAttendanceData(existingData, newData) {
+            const mergedMap = new Map();
+            
+            existingData.forEach(item => {
+                const key = `${item.date}-${item.id}`;
+                mergedMap.set(key, { ...item });
+            });
+            
+            newData.forEach(item => {
+                const key = `${item.date}-${item.id}`;
+                mergedMap.set(key, { ...item });
+            });
+            
+            return Array.from(mergedMap.values()).sort((a, b) => {
+                if (a.date !== b.date) {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                return a.id.localeCompare(b.id, undefined, { numeric: true });
+            });
+        }
+
+        function clearAttendanceRecords() {
+            if (confirm('确定要删除所有考勤记录吗？此操作不可恢复。')) {
+                localStorage.removeItem('attendanceData');
+                attendanceTableBody.innerHTML = '';
+                keywordFilter.value = '';
+                currentFilteredData = [];
+                showStatus('所有考勤记录已清除', 'success');
+            }
+        }
+
+        function applyFilters() {
+            const keyword = keywordFilter.value.trim().toLowerCase();
+            
+            const allData = getAttendanceDataFromLocalStorage();
+            
+            const filteredData = allData.filter(record => {
+                if (keyword) {
+                    const matchesName = record.name.toLowerCase().includes(keyword);
+                    const matchesId = record.id.toLowerCase().includes(keyword);
+                    const matchesDate = record.date.toLowerCase().includes(keyword);
+                    
+                    if (!matchesName && !matchesId && !matchesDate) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            currentFilteredData = filteredData;
+            populateAttendanceTable(filteredData);
+            
+            showStatus(`筛选成功，共找到 ${filteredData.length} 条记录`, 'success');
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showStatus('Excel库加载失败，请重试', 'error');
+                return;
+            }
+            
+            if (currentFilteredData.length === 0) {
+                showStatus('没有可导出的记录', 'error');
+                return;
+            }
+            
+            const exportData = currentFilteredData.map(record => {
+                const row = {
+                    '日期': record.date,
+                    '工号': record.id,
+                    '姓名': record.name
+                };
+                
+                record.times.forEach((time, index) => {
+                    row[`考勤时间${index + 1}`] = time;
+                });
+                
+                return row;
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "考勤记录");
+            
+            const today = new Date();
+            const fileName = `考勤记录_${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}.xlsx`;
+            
+            XLSX.writeFile(wb, fileName);
+            showStatus('记录已成功导出为Excel文件', 'success');
+        }
+
+        function showStatus(message, type) {
+            const headerStatus = document.getElementById('headerStatus');
+            headerStatus.textContent = message;
+            headerStatus.className = 'header-status';
+            headerStatus.classList.add(type);
+            headerStatus.style.display = 'block';
+                
+            setTimeout(() => {
+                headerStatus.style.display = 'none';
+            }, 3000);
+            return;
+            
+            const statusElement = document.getElementById('headerStatus');
+            statusElement.textContent = message;
+            statusElement.className = 'header-status'; // 重置类名
+            statusElement.classList.add(type);
+            statusElement.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+            
+            uploadStatus.textContent = message;
+            uploadStatus.className = 'upload-status';
+            uploadStatus.classList.add(type);
+            uploadStatus.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    uploadStatus.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // 人员信息导入弹窗
+        const batchImportBtn = document.getElementById('batchImportBtn');
+        const importModal = document.getElementById('importModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelImport = document.getElementById('cancelImport');
+        const batchFileInput = document.getElementById('batchFileInput');
+        const batchFileName = document.getElementById('batchFileName');
+        const downloadTemplate = document.getElementById('downloadTemplate');
+        const confirmImport = document.getElementById('confirmImport');
+        const resultModal = document.getElementById('resultModal');
+        const resultContent = document.getElementById('resultContent');
+        const closeResult = document.getElementById('closeResult');
+
+        // 打开批量导入弹窗
+        batchImportBtn.addEventListener('click', () => {
+            importModal.style.display = 'flex';
+            batchFileInput.value = '';
+            batchFileName.textContent = '';
+        });
+
+        // 关闭弹窗
+        function closeImportModal() {
+            importModal.style.display = 'none';
+        }
+
+        closeModal.addEventListener('click', closeImportModal);
+        cancelImport.addEventListener('click', closeImportModal);
+
+        // 选择文件
+        batchFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                batchFileName.textContent = e.target.files[0].name;
+            } else {
+                batchFileName.textContent = '';
+            }
+        });
+
+        // 下载模板
+        downloadTemplate.addEventListener('click', () => {
+            // 创建模板数据
+            const templateData = [
+                ['工号', '姓名', '科室', '分管领导', '状态'],
+                ['001', '张三', '内科', '李春娟', '正常'],
+                ['002', '李四', '外科', '段海燕', '假期']
+            ];
+            
+            // 创建工作簿和工作表
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "人员信息模板");
+            
+            // 下载文件
+            XLSX.writeFile(wb, '人员信息导入模板.xlsx');
+            showStatus('模板下载成功', 'success');
+        });
+
+        // 确认导入
+        confirmImport.addEventListener('click', () => {
+            if (!batchFileInput.files || batchFileInput.files.length === 0) {
+                showStatus('请选择要导入的文件', 'error');
+                return;
+            }
+            
+            const file = batchFileInput.files[0];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (fileExtension !== '.xls' && fileExtension !== '.xlsx') {
+                showStatus('文件格式不正确，请选择xls或xlsx格式', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    // 验证导入数据
+                    const { validData, errors } = validateImportData(jsonData);
+                    
+                    // 显示导入结果
+                    showImportResult(validData, errors);
+                    
+                    // 关闭导入弹窗
+                    closeImportModal();
+                } catch (error) {
+                    showStatus('文件解析错误: ' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 验证导入数据
+        function validateImportData(data) {
+            const validData = [];
+            const errors = [];
+            const existingPersons = getPersonDataFromLocalStorage();
+            const existingIds = new Set(existingPersons.map(p => p.id));
+            
+            // 科室和分管领导的有效值
+            const validDepartments = ['内科', '外科', '理疗科', '护理', '收费', '居民医保', '药房', '放射', '化验', 'B超', '妇保', '口腔', '公卫', '办公室', '财务', '防保', '药库', '仓库', '后勤'];
+            const validManagers = ['李春娟', '段海燕', '宋增信', '刘长军', '徐伟', '王雷'];
+            const validStatus = ['正常', '假期', '外勤'];
+            
+            data.forEach((item, index) => {
+                const rowNum = index + 2; // 表格行号从2开始
+                const rowErrors = [];
+                
+                // 转换键名（处理可能的表头差异）
+                const normalizedItem = {};
+                Object.keys(item).forEach(key => {
+                    const lowerKey = key.trim().toLowerCase();
+                    if (lowerKey.includes('工号')) normalizedItem.id = item[key];
+                    else if (lowerKey.includes('姓名')) normalizedItem.name = item[key];
+                    else if (lowerKey.includes('科室')) normalizedItem.department = item[key];
+                    else if (lowerKey.includes('分管') || lowerKey.includes('领导')) normalizedItem.manager = item[key];
+                    else if (lowerKey.includes('状态')) normalizedItem.pstatus = item[key];
+                });
+                
+                // 验证必填字段
+                if (!normalizedItem.id) rowErrors.push('工号不能为空');
+                if (!normalizedItem.name) rowErrors.push('姓名不能为空');
+                if (!normalizedItem.department) rowErrors.push('科室不能为空');
+                if (!normalizedItem.manager) rowErrors.push('分管领导不能为空');
+                
+                // 验证工号是否已存在
+                if (normalizedItem.id && existingIds.has(normalizedItem.id.toString())) {
+                    rowErrors.push('工号已存在');
+                }
+                
+                // 验证科室是否有效
+                if (normalizedItem.department && !validDepartments.includes(normalizedItem.department)) {
+                    rowErrors.push(`科室"${normalizedItem.department}"无效，可选值: ${validDepartments.join('、')}`);
+                }
+                
+                // 验证分管领导是否有效
+                if (normalizedItem.manager && !validManagers.includes(normalizedItem.manager)) {
+                    rowErrors.push(`分管领导"${normalizedItem.manager}"无效，可选值: ${validManagers.join('、')}`);
+                }
+                
+                // 验证状态是否有效（默认为正常）
+                if (!normalizedItem.pstatus) {
+                    normalizedItem.pstatus = '正常';
+                } else if (!validStatus.includes(normalizedItem.pstatus)) {
+                    rowErrors.push(`状态"${normalizedItem.pstatus}"无效，可选值: ${validStatus.join('、')}`);
+                }
+                
+                // 处理验证结果
+                if (rowErrors.length === 0) {
+                    // 格式化数据
+                    validData.push({
+                        id: normalizedItem.id.toString(),
+                        name: normalizedItem.name.toString().trim(),
+                        department: normalizedItem.department.toString().trim(),
+                        manager: normalizedItem.manager.toString().trim(),
+                        pstatus: normalizedItem.pstatus,
+                        createTime: new Date().toLocaleString()
+                    });
+                } else {
+                    errors.push({
+                        row: rowNum,
+                        data: normalizedItem,
+                        errors: rowErrors
+                    });
+                }
+            });
+            
+            return { validData, errors };
+        }
+
+        // 显示导入结果
+        function showImportResult(validData, errors) {
+            let html = '';
+            
+            if (validData.length > 0) {
+                // 保存有效数据
+                const existingPersons = getPersonDataFromLocalStorage();
+                const newData = [...existingPersons, ...validData];
+                savePersonDataToLocalStorage(newData);
+                loadPersonDataFromLocalStorage();
+                
+                html += `<div style="color: #155724; margin-bottom: 15px;">
+                    成功导入 ${validData.length} 条数据
+                </div>`;
+            }
+            
+            if (errors.length > 0) {
+                html += `<div style="color: #721c24; margin-bottom: 15px;">
+                    导入失败 ${errors.length} 条数据
+                </div>`;
+                
+                html += '<table border="1" width="100%" style="border-collapse: collapse; margin-bottom: 15px;">';
+                html += '<tr style="background-color: #f8d7da;">';
+                html += '<th style="padding: 5px; text-align: left;">行号</th>';
+                html += '<th style="padding: 5px; text-align: left;">工号</th>';
+                html += '<th style="padding: 5px; text-align: left;">姓名</th>';
+                html += '<th style="padding: 5px; text-align: left;">错误信息</th>';
+                html += '</tr>';
+                
+                errors.forEach(item => {
+                    html += '<tr>';
+                    html += `<td style="padding: 5px;">${item.row}</td>`;
+                    html += `<td style="padding: 5px;">${item.data.id || ''}</td>`;
+                    html += `<td style="padding: 5px;">${item.data.name || ''}</td>`;
+                    html += `<td style="padding: 5px; color: #721c24;">${item.errors.join('<br>')}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</table>';
+            }
+            
+            resultContent.innerHTML = html;
+            resultModal.style.display = 'flex';
+        }
+
+        // 关闭结果弹窗
+        closeResult.addEventListener('click', () => {
+            resultModal.style.display = 'none';
+        });
+    </script>
+    <script>
+        // T7
+        // 获取考勤整理相关元素
+        const generateArrangeTableBtn = document.getElementById('generateArrangeTable');
+        const arrangeStartDateInput = document.getElementById('ArrangeStartDate');
+        const arrangeEndDateInput = document.getElementById('ArrangeEndDate');
+        const arrangeRecodeTableBody = document.getElementById('arrangeRecodeTableBody');
+        const arrangeKeywordFilter = document.getElementById('arrange-keyword-filter');
+
+        // 绑定生成按钮点击事件
+        generateArrangeTableBtn.addEventListener('click', generateArrangeTable);
+
+        // 生成考勤整理记录表
+        function generateArrangeTable() {
+            // 验证日期输入
+            const startDate = new Date(arrangeStartDateInput.value);
+            const endDate = new Date(arrangeEndDateInput.value);
+            
+            if (!arrangeStartDateInput.value || !arrangeEndDateInput.value) {
+                showStatus('请选择开始日期和结束日期', 'error');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                showStatus('开始日期不能晚于结束日期', 'error');
+                return;
+            }
+            
+            // 获取基础数据
+            const personData = getPersonDataFromLocalStorage(); // 人员信息
+            const attendanceData = getAttendanceDataFromLocalStorage(); // 原始考勤记录
+            const ruleData = getRuleDataFromLocalStorage(); // 考勤规则（R1-R8）
+            
+            if (personData.length === 0) {
+                showStatus('暂无人员信息，请先添加人员', 'error');
+                return;
+            }
+            
+            if (ruleData.length === 0) {
+                showStatus('暂无考勤规则，请先创建规则', 'error');
+                return;
+            }
+            
+            // 生成日期范围内的所有日期
+            const dateRange = getDateRange(startDate, endDate);
+            
+            // 生成整理记录数据
+            const arrangeData = [];
+            personData.forEach(person => {
+                dateRange.forEach(date => {
+                    // 查找该人员当天的考勤记录
+                    const attendanceRecord = attendanceData.find(
+                        item => item.date === date && item.id === person.id
+                    );
+                    
+                    // 按规则匹配考勤时间（R1-R8）
+                    const ruleMatches = matchAttendanceWithRules(attendanceRecord?.times || [], ruleData);
+                    
+                    // 创建整理记录行
+                    arrangeData.push({
+                        date,
+                        id: person.id,
+                        name: person.name,
+                        department: person.department,
+                        manager: person.manager,
+                        status: person.pstatus,
+                        ...ruleMatches // 包含R1-R8的匹配结果
+                    });
+                });
+            });
+            
+            // 保存并显示整理记录
+            saveArrangeDataToLocalStorage(arrangeData);
+            populateArrangeTable(arrangeData);
+            showStatus(`成功生成 ${arrangeData.length} 条考勤整理记录`, 'success');
+        }
+
+        // 生成日期范围内的所有日期（格式：YYYY-MM-DD）
+        function getDateRange(startDate, endDate) {
+            const dates = [];
+            const currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                dates.push(formatDate(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return dates;
+        }
+
+        // 日期格式化（YYYY-MM-DD）
+        function formatDate(date) {
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        // 按规则匹配考勤时间
+        function matchAttendanceWithRules(attendanceTimes, ruleData) {
+            const ruleMatches = {};
+            
+            // 按规则时间排序（确保R1-R8对应规则的时间顺序）
+            const sortedRules = [...ruleData].sort((a, b) => {
+                return new Date(`1970-01-01 ${a.startTime}`) - new Date(`1970-01-01 ${b.startTime}`);
+            });
+            
+            // 为每个规则匹配在规则时间范围内的考勤时间
+            sortedRules.forEach((rule, index) => {
+                const ruleIndex = index + 1; // R1-R8
+                // 解析规则的起始和结束时间
+                const ruleStart = new Date(`1970-01-01 ${rule.startTime}`);
+                const ruleEnd = new Date(`1970-01-01 ${rule.endTime}`);
+                
+                // 查找在规则时间范围内的考勤时间
+                let matchedTime = null;
+                
+                attendanceTimes.forEach(time => {
+                    const attendanceTime = new Date(`1970-01-01 ${time}`);
+                    // 检查考勤时间是否在规则的起始和结束时间之间
+                    if (attendanceTime >= ruleStart && attendanceTime <= ruleEnd) {
+                        matchedTime = time; // 找到第一个匹配的时间（如果需要所有匹配可改为数组）
+                        // 如果只需要一个匹配项，找到后可以跳出循环
+                        return false;
+                    }
+                });
+                
+                ruleMatches[`R${ruleIndex}`] = matchedTime || '';
+            });
+
+            // 不足8条规则时补空
+            for (let i = sortedRules.length + 1; i <= 8; i++) {
+                ruleMatches[`R${i}`] = '';
+            }
+            
+            return ruleMatches;
+        }
+
+        // 填充考勤整理记录表
+        function populateArrangeTable(data) {
+            arrangeRecodeTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="14" style="text-align: center;">暂无整理记录数据</td>';
+                arrangeRecodeTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.id}</td>
+                    <td>${record.name}</td>
+                    <td>${record.department}</td>
+                    <td>${record.manager}</td>
+                    <td>${record.status}</td>
+                    <td>${record.R1 || ''}</td>
+                    <td>${record.R2 || ''}</td>
+                    <td>${record.R3 || ''}</td>
+                    <td>${record.R4 || ''}</td>
+                    <td>${record.R5 || ''}</td>
+                    <td>${record.R6 || ''}</td>
+                    <td>${record.R7 || ''}</td>
+                    <td>${record.R8 || ''}</td>
+                `;
+                arrangeRecodeTableBody.appendChild(row);
+            });
+        }
+
+        // 生成日期范围的辅助函数
+        function getDateRange(startDate, endDate) {
+            const dates = [];
+            const currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                dates.push(formatDate(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return dates;
+        }
+
+        // 考勤整理记录本地存储操作
+        function saveArrangeDataToLocalStorage(data) {
+            try {
+                localStorage.setItem('arrangeRecords', JSON.stringify(data));
+                showStatus('考勤整理记录已保存', 'success');
+            } catch (e) {
+                showStatus('保存考勤整理记录失败: ' + e.message, 'error');
+                console.error('保存考勤整理记录失败:', e);
+            }
+        }
+
+        // 从localStorage加载考勤整理记录
+        function loadArrangeDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('arrangeRecords');
+                if (data) {
+                    arrangeRecords = JSON.parse(data);
+                    renderArrangeTable(arrangeRecords);
+                    currentFilteredArrangeData = [...arrangeRecords];
+                } else {
+                    arrangeRecords = [];
+                    currentFilteredArrangeData = [];
+                }
+            } catch (e) {
+                showStatus('加载考勤整理记录失败: ' + e.message, 'error');
+                console.error('加载考勤整理记录失败:', e);
+                arrangeRecords = [];
+                currentFilteredArrangeData = [];
+            }
+        }
+
+        function getArrangeDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem('arrangeData');
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('获取考勤整理数据失败:', error);
+                return [];
+            }
+        }
+
+        // 考勤整理记录筛选功能
+        arrangeKeywordFilter.addEventListener('input', applyArrangeFilters);
+
+        function applyArrangeFilters() {
+            const keyword = arrangeKeywordFilter.value.trim().toLowerCase();
+            const allData = getArrangeDataFromLocalStorage();
+            
+            const filteredData = allData.filter(record => {
+                if (!keyword) return true;
+                
+                const matchesName = record.name.toLowerCase().includes(keyword);
+                const matchesId = record.id.toLowerCase().includes(keyword);
+                const matchesDept = record.department.toLowerCase().includes(keyword);
+                const matchesDate = record.date.toLowerCase().includes(keyword);
+                
+                return matchesName || matchesId || matchesDept || matchesDate;
+            });
+            
+            populateArrangeTable(filteredData);
+        }
+
+        // 绑定整理记录的其他按钮事件
+        document.getElementById('cleararrangeFilter').addEventListener('click', () => {
+            arrangeKeywordFilter.value = '';
+            const allData = getArrangeDataFromLocalStorage();
+            populateArrangeTable(allData);
+            showStatus('筛选已清除', 'success');
+        });
+
+        document.getElementById('cleararrangeRecode').addEventListener('click', () => {
+            if (confirm('确定要删除所有整理记录吗？')) {
+                localStorage.removeItem('arrangeData');
+                arrangeRecodeTableBody.innerHTML = '';
+                arrangeKeywordFilter.value = '';
+                showStatus('所有整理记录已清除', 'success');
+            }
+        });
+
+        document.getElementById('outputarrangeRecode').addEventListener('click', () => {
+            const data = getArrangeDataFromLocalStorage();
+            if (data.length === 0) {
+                showStatus('暂无整理记录可导出', 'error');
+                return;
+            }
+            
+            // 导出逻辑与其他导出类似，使用XLSX库
+            const exportData = data.map(record => ({
+                '日期': record.date,
+                '工号': record.id,
+                '姓名': record.name,
+                '科室': record.department,
+                '分管': record.manager,
+                '状态': record.status,
+                'R1': record.R1 || '',
+                'R2': record.R2 || '',
+                'R3': record.R3 || '',
+                'R4': record.R4 || '',
+                'R5': record.R5 || '',
+                'R6': record.R6 || '',
+                'R7': record.R7 || '',
+                'R8': record.R8 || ''
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "考勤整理记录");
+            XLSX.writeFile(wb, `考勤整理记录_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+            showStatus('整理记录导出成功', 'success');
+        }); 
+    </script>
+    <script>
+        // T8
+        // 合并页相关元素
+        const mergeKeywordFilter = document.getElementById('merge-keyword-filter');
+        const mergeClearFilterBtn = document.getElementById('mergeclearfilter');
+        const mergeClearRecodeBtn = document.getElementById('mergeclearrecode');
+        const mergeOutputRecodeBtn = document.getElementById('mergeoutputrecode');
+        const mergeTableBody = document.getElementById('mergeTableBody');
+
+        // 初始化合并页数据
+        function initMergePage() {
+            // 页面加载时如果当前是合并页则加载数据
+            const activeTab = localStorage.getItem('activeTab');
+            if (activeTab === 'mergeRecodebox') {
+                loadMergeData();
+            }
+        }
+
+        // 从整理记录加载并转换数据到合并表格
+        function loadMergeData() {
+            // 获取考勤整理记录数据
+            const arrangeData = JSON.parse(localStorage.getItem('arrangeRecords') || '[]');
+            
+            // 转换数据格式（合并R1-R8到考勤时间1-5）
+            const mergedData = arrangeData.map(record => {
+                return {
+                    date: record.date,
+                    id: record.id,
+                    name: record.name,
+                    department: record.department,
+                    manager: record.manager,
+                    status: record.status,
+                    // 按要求合并R列到考勤时间列
+                    time1: combineTimes(record.R1, record.R2),
+                    time2: combineTimes(record.R3, record.R5),
+                    time3: combineTimes(record.R4, record.R6),
+                    time4: combineTimes(record.R7, record.R8)
+                };
+            });
+            
+            // 渲染合并表格
+            renderMergeTable(mergedData);
+            return mergedData;
+        }
+
+        // 合并多个时间（用逗号分隔非空值）
+        function combineTimes(...times) {
+            return times.filter(time => time && time.trim() !== '').join('，');
+        }
+
+        // 渲染合并表格
+        function renderMergeTable(data) {
+            mergeTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="11" style="text-align: center;">暂无合并记录数据</td>';
+                mergeTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date || ''}</td>
+                    <td>${record.id || ''}</td>
+                    <td>${record.name || ''}</td>
+                    <td>${record.department || ''}</td>
+                    <td>${record.manager || ''}</td>
+                    <td>${record.status || ''}</td>
+                    <td>${record.time1 || ''}</td>
+                    <td>${record.time2 || ''}</td>
+                    <td>${record.time3 || ''}</td>
+                    <td>${record.time4 || ''}</td>
+                `;
+                mergeTableBody.appendChild(row);
+            });
+        }
+
+        // 合并页筛选功能
+        function applyMergeFilters() {
+            const keyword = mergeKeywordFilter.value.trim().toLowerCase();
+            const arrangeData = JSON.parse(localStorage.getItem('arrangeRecords') || '[]');
+            
+            // 先筛选再转换格式
+            const filteredArrangeData = arrangeData.filter(record => {
+                if (!keyword) return true;
+                
+                const matchesDate = record.date.toLowerCase().includes(keyword);
+                const matchesId = record.id.toLowerCase().includes(keyword);
+                const matchesName = record.name.toLowerCase().includes(keyword);
+                const matchesDept = record.department.toLowerCase().includes(keyword);
+                
+                return matchesDate || matchesId || matchesName || matchesDept;
+            });
+            
+            // 转换为合并表格格式
+            const mergedData = filteredArrangeData.map(record => ({
+                date: record.date,
+                id: record.id,
+                name: record.name,
+                department: record.department,
+                manager: record.manager,
+                status: record.status,
+                time1: combineTimes(record.R1, record.R2),
+                time2: combineTimes(record.R3, record.R5),
+                time3: combineTimes(record.R4, record.R6),
+                time4: combineTimes(record.R7, record.R8)
+            }));
+            
+            renderMergeTable(mergedData);
+        }
+
+        // 清除合并页筛选
+        function clearMergeFilters() {
+            mergeKeywordFilter.value = '';
+            loadMergeData();
+            showStatus('合并页筛选已清除', 'success');
+        }
+
+        // 删除合并记录（实际删除的是源整理记录）
+        function clearMergeRecords() {
+            if (confirm('确定要删除所有合并记录吗？此操作将同时删除源整理记录！')) {
+                localStorage.removeItem('arrangeRecords');
+                mergeTableBody.innerHTML = '';
+                mergeKeywordFilter.value = '';
+                // 同时清空整理记录表
+                document.getElementById('arrangeRecodeTableBody').innerHTML = '';
+                showStatus('所有合并记录已清除', 'success');
+            }
+        }
+
+        // 导出合并记录
+        function exportMergeRecords() {
+            const mergeData = loadMergeData();
+            
+            if (mergeData.length === 0) {
+                showStatus('没有可导出的合并记录', 'error');
+                return;
+            }
+            
+            // 准备导出数据
+            const exportData = mergeData.map(record => ({
+                '日期': record.date,
+                '工号': record.id,
+                '姓名': record.name,
+                '科室': record.department,
+                '分管': record.manager,
+                '状态': record.status,
+                '考勤时间1': record.time1,
+                '考勤时间2': record.time2,
+                '考勤时间3': record.time3,
+                '考勤时间4': record.time4,
+            }));
+            
+            // 导出为Excel
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "合并考勤记录");
+            
+            const today = new Date();
+            const fileName = `合并考勤记录_${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}.xlsx`;
+            
+            XLSX.writeFile(wb, fileName);
+            showStatus('合并记录已成功导出', 'success');
+        }
+
+        // 绑定合并页事件
+        mergeKeywordFilter.addEventListener('input', applyMergeFilters);
+        mergeClearFilterBtn.addEventListener('click', clearMergeFilters);
+        mergeClearRecodeBtn.addEventListener('click', clearMergeRecords);
+        mergeOutputRecodeBtn.addEventListener('click', exportMergeRecords);
+
+        // 切换到合并页时加载数据
+        buttons.forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.dataset.tab;
+                if (targetId === 'mergeRecodebox') {
+                    loadMergeData();
+                }
+            });
+        });
+
+        // 页面加载时初始化合并页
+        window.addEventListener('DOMContentLoaded', initMergePage);
+    </script>
+    <script>
+        // T9
+        // 全局变量存储当前编辑页数据
+        let editTableData = [];
+
+        // 生成编辑表格
+        document.getElementById('generateEditTable').addEventListener('click', function() {
+            // 从mergeTableBody获取数据
+            const mergeTableBody = document.getElementById('mergeTableBody');
+            const rows = mergeTableBody.querySelectorAll('tr');
+            const newData = [];
+
+            rows.forEach((row, index) => {
+                // 跳过表头行
+                if (index === 0) return;
+                
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 10) {
+                    newData.push({
+                        id: Date.now() + index, // 生成唯一ID
+                        date: cells[0].textContent,
+                        personId: cells[1].textContent,
+                        name: cells[2].textContent,
+                        department: cells[3].textContent,
+                        manager: cells[4].textContent,
+                        status: cells[5].textContent,
+                        time1: cells[6].textContent,
+                        time2: cells[7].textContent,
+                        time3: cells[8].textContent,
+                        time4: cells[9].textContent
+                    });
+                }
+            });
+
+            // 保存到localStorage
+            localStorage.setItem('mergeEditData', JSON.stringify(newData));
+            editTableData = newData;
+            
+            // 渲染表格
+            renderEditTable(newData);
+            
+            // 显示状态提示
+            showStatus('表格生成成功，共 ' + newData.length + ' 条记录', 'success');
+        });
+
+        // 渲染编辑表格
+        function renderEditTable(data) {
+            const tableBody = document.getElementById('mergeEditTableBody');
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="11" style="text-align: center;">暂无数据</td>';
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.personId}</td>
+                    <td>${item.name}</td>
+                    <td>${item.department}</td>
+                    <td>${item.manager}</td>
+                    <td>${item.status}</td>
+                    <td>${item.time1}</td>
+                    <td>${item.time2}</td>
+                    <td>${item.time3}</td>
+                    <td>${item.time4}</td>
+                    <td>
+                        <button class="edit-btn" data-id="${item.id}" style="margin-right:5px; background-color: #0182fa; border-style: none; border-radius: 5px; color: white; width: 50px; margin-bottom:1.5px;">编辑</button>
+                        <button class="delete-btn" data-id="${item.id}" style=" background-color: #d10909; border-style: none; border-radius: 5px; color: white; width: 50px;">删除</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // 绑定编辑和删除按钮事件
+            bindEditButtons();
+            bindDeleteButtons();
+        }
+
+        // 绑定编辑按钮事件
+        function bindEditButtons() {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    const record = editTableData.find(item => item.id === id);
+                    
+                    if (record) {
+                        // 填充编辑表单
+                        document.getElementById('editRecordId').value = record.id;
+                        document.getElementById('editDate').value = record.date;
+                        document.getElementById('editPersonId').value = record.personId;
+                        document.getElementById('editName').value = record.name;
+                        document.getElementById('editDepartment').value = record.department;
+                        document.getElementById('editManager').value = record.manager;
+                        document.getElementById('editStatus').value = record.status;
+                        document.getElementById('editTime1').value = record.time1;
+                        document.getElementById('editTime2').value = record.time2;
+                        document.getElementById('editTime3').value = record.time3;
+                        document.getElementById('editTime4').value = record.time4;
+                        
+                        // 显示编辑弹窗
+                        document.getElementById('editModal').style.display = 'flex';
+                    }
+                });
+            });
+        }
+
+        // 绑定删除按钮事件
+        function bindDeleteButtons() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('确定要删除这条记录吗？')) {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        editTableData = editTableData.filter(item => item.id !== id);
+                        localStorage.setItem('mergeEditData', JSON.stringify(editTableData));
+                        renderEditTable(editTableData);
+                        showStatus('记录已删除', 'success');
+                    }
+                });
+            });
+        }
+
+        // 筛选功能
+        document.getElementById('edit-keyword-filter').addEventListener('input', function() {
+            const keyword = this.value.toLowerCase().trim();
+            if (!keyword) {
+                renderEditTable(editTableData);
+                return;
+            }
+
+            const filteredData = editTableData.filter(item => {
+                return Object.values(item).some(value => 
+                    value.toString().toLowerCase().includes(keyword)
+                );
+            });
+
+            renderEditTable(filteredData);
+        });
+
+        // 清除筛选
+        document.getElementById('editclearfilter').addEventListener('click', function() {
+            document.getElementById('edit-keyword-filter').value = '';
+            renderEditTable(editTableData);
+        });
+
+        // 清除所有记录
+        document.getElementById('editclearrecode').addEventListener('click', function() {
+            if (confirm('确定要删除所有记录吗？此操作不可恢复！')) {
+                editTableData = [];
+                localStorage.removeItem('mergeEditData');
+                renderEditTable(editTableData);
+                showStatus('所有记录已清空', 'success');
+            }
+        });
+
+        // 导出记录
+        document.getElementById('editoutputrecode').addEventListener('click', function() {
+            if (editTableData.length === 0) {
+                showStatus('没有可导出的记录', 'error');
+                return;
+            }
+
+            // 准备导出数据
+            const exportData = editTableData.map(item => {
+                return {
+                    '日期': item.date,
+                    '工号': item.personId,
+                    '姓名': item.name,
+                    '科室': item.department,
+                    '分管': item.manager,
+                    '状态': item.status,
+                    '考勤时间1': item.time1,
+                    '考勤时间2': item.time2,
+                    '考勤时间3': item.time3,
+                    '考勤时间4': item.time4
+                };
+            });
+
+            // 创建工作簿和工作表
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "考勤编辑记录");
+
+            // 导出文件
+            XLSX.writeFile(wb, `考勤合并编辑记录_${new Date().toLocaleDateString()}.xlsx`);
+            showStatus('记录导出成功', 'success');
+        });
+
+        // 关闭编辑弹窗
+        document.getElementById('closeEditModal').addEventListener('click', function() {
+            document.getElementById('editModal').style.display = 'none';
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', function() {
+            document.getElementById('editModal').style.display = 'none';
+        });
+
+        // 保存编辑
+        document.getElementById('saveEdit').addEventListener('click', function() {
+            const id = parseInt(document.getElementById('editRecordId').value);
+            const index = editTableData.findIndex(item => item.id === id);
+
+            if (index !== -1) {
+                // 更新数据
+                editTableData[index] = {
+                    ...editTableData[index],
+                    date: document.getElementById('editDate').value,
+                    personId: document.getElementById('editPersonId').value,
+                    name: document.getElementById('editName').value,
+                    department: document.getElementById('editDepartment').value,
+                    manager: document.getElementById('editManager').value,
+                    status: document.getElementById('editStatus').value,
+                    time1: document.getElementById('editTime1').value,
+                    time2: document.getElementById('editTime2').value,
+                    time3: document.getElementById('editTime3').value,
+                    time4: document.getElementById('editTime4').value
+                };
+
+                // 保存到localStorage
+                localStorage.setItem('mergeEditData', JSON.stringify(editTableData));
+                
+                // 重新渲染表格
+                renderEditTable(editTableData);
+                
+                // 关闭弹窗
+                document.getElementById('editModal').style.display = 'none';
+                
+                // 显示状态提示
+                showStatus('记录已更新', 'success');
+            }
+        });
+
+        // 状态提示函数
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('headerStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'header-status';
+            statusEl.classList.add(type);
+            statusEl.style.display = 'block';
+
+            // 3秒后隐藏
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // 页面加载时从localStorage读取数据
+        window.addEventListener('load', function() {
+            const savedData = localStorage.getItem('mergeEditData');
+            if (savedData) {
+                editTableData = JSON.parse(savedData);
+                renderEditTable(editTableData);
+            }
+        });
+    </script>
+    <script>
+        // T10-15
+        // 分管领导列表
+        const managers = [
+            'lcj',
+            'szx',
+            'lcjun',
+            'dhy',
+            'xw',
+            'wl'
+        ];
+
+        // 初始化所有分管领导部门页功能
+        managers.forEach(manager => {
+            // 生成数据按钮点击事件
+            document.getElementById(`generate${manager}Table`).addEventListener('click', () => {
+                generateDepartmentData(manager);
+            });
+
+            // 清除筛选按钮点击事件
+            document.getElementById(`${manager}clearfilter`).addEventListener('click', () => {
+                clearFilter(manager);
+            });
+
+            // 删除记录按钮点击事件
+            document.getElementById(`${manager}clearrecode`).addEventListener('click', () => {
+                clearRecords(manager);
+            });
+
+            // 导出记录按钮点击事件
+            document.getElementById(`${manager}outputrecode`).addEventListener('click', () => {
+                exportRecords(manager);
+            });
+
+            // 关键词筛选输入事件
+            document.getElementById(`${manager}-keyword-filter`).addEventListener('input', () => {
+                filterRecords(manager);
+            });
+
+            // 页面加载时从localStorage加载数据
+            loadFromLocalStorage(manager);
+        });
+
+        // 从mergeEditTableBody生成对应分管领导的数据
+        function generateDepartmentData(manager) {
+            const mergeTableBody = document.getElementById('mergeEditTableBody');
+            if (!mergeTableBody) {
+                showStatus('合并编辑数据表格不存在', 'error');
+                return;
+            }
+
+            const rows = mergeTableBody.querySelectorAll('tr');
+            if (rows.length === 0) {
+                showStatus('没有可生成的数据', 'error');
+                return;
+            }
+
+            // 获取对应中文名称
+            const managerNameMap = {
+                'lcj': '李春娟',
+                'szx': '宋增信',
+                'lcjun': '刘长军',
+                'dhy': '段海燕',
+                'xw': '徐伟',
+                'wl': '王雷'
+            };
+            const managerName = managerNameMap[manager];
+
+            // 筛选出该分管领导的数据
+            const filteredData = [];
+            rows.forEach(row => {
+                const managerCell = row.cells[4]; // 假设第5列是分管领导
+                if (managerCell && managerCell.textContent.trim() === managerName) {
+                    // // 提取行数据
+                    // const rowData = Array.from(row.cells).map(cell => cell.textContent.trim());
+                    // filteredData.push(rowData);
+                    // 提取行数据并排除最后一列（操作列）
+                    const cells = Array.from(row.cells);
+                    // 排除最后一列（操作列），只取前面的数据列
+                    const rowData = cells.slice(0, -1).map(cell => cell.textContent.trim());
+                    filteredData.push(rowData);
+                }
+            });
+
+            if (filteredData.length === 0) {
+                showStatus(`没有找到${managerName}分管的数据`, 'error');
+                return;
+            }
+
+            // 渲染表格
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+            
+            filteredData.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+
+            // 保存到localStorage
+            localStorage.setItem(`department_${manager}`, JSON.stringify(filteredData));
+            showStatus(`${managerName}部门数据生成成功，共${filteredData.length}条记录`, 'success');
+        }
+
+        // 清除筛选
+        function clearFilter(manager) {
+            const filterInput = document.getElementById(`${manager}-keyword-filter`);
+            if (filterInput) {
+                filterInput.value = '';
+            }
+            // 重新加载全部数据
+            loadFromLocalStorage(manager);
+        }
+
+        // 清除记录
+        function clearRecords(manager) {
+            if (confirm('确定要删除所有记录吗？此操作不可恢复。')) {
+                const tableBody = document.getElementById(`${manager}TableBody`);
+                tableBody.innerHTML = '';
+                localStorage.removeItem(`department_${manager}`);
+                showStatus('所有记录已删除', 'success');
+            }
+        }
+
+        // 导出记录
+        function exportRecords(manager) {
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            if (data.length === 0) {
+                showStatus('没有可导出的数据', 'error');
+                return;
+            }
+
+            // 创建工作簿和工作表
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // 添加表头（假设表头和合并编辑页相同）
+            const mergeTable = document.getElementById('mergeEditTableBody').parentElement;
+            const headers = Array.from(mergeTable.querySelectorAll('th')).map(th => th.textContent);
+            XLSX.utils.unshift_row(ws, headers);
+
+            // 保存工作簿
+            XLSX.utils.book_append_sheet(wb, ws, `${getManagerName(manager)}部门数据`);
+            XLSX.writeFile(wb, `${getManagerName(manager)}部门考勤数据.xlsx`);
+            showStatus('数据导出成功', 'success');
+        }
+
+        // 筛选记录
+        function filterRecords(manager) {
+            const filterText = document.getElementById(`${manager}-keyword-filter`).value.toLowerCase().trim();
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+
+            const filteredData = data.filter(row => 
+                row.some(cell => cell.toLowerCase().includes(filterText))
+            );
+
+            filteredData.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 从localStorage加载数据
+        function loadFromLocalStorage(manager) {
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+
+            data.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 显示状态提示
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('headerStatus');
+            statusEl.textContent = message;
+            statusEl.className = `header-status ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // 获取分管领导中文名称
+        function getManagerName(manager) {
+            const managerNameMap = {
+                'lichunjuan': '李春娟',
+                'songzengxin': '宋增信',
+                'liuchangjun': '刘长军',
+                'duanhaiyan': '段海燕',
+                'xuwei': '徐伟',
+                'wanglei': '王雷'
+            };
+            return managerNameMap[manager] || manager;
+        }
+    </script>
+    <script>
+        // T16-21
+        // 分管领导列表
+        const managersr = [
+            'lcjr',
+            'szxr',
+            'lcjunr',
+            'dhyr',
+            'xwr',
+            'wlr'
+        ];
+
+        // 初始化所有分管领导部门页功能
+        managersr.forEach(manager => {
+            // 生成数据按钮点击事件
+            document.getElementById(`generate${manager}Table`).addEventListener('click', () => {
+                generateDepartmentData(manager);
+            });
+
+            // 清除筛选按钮点击事件
+            document.getElementById(`${manager}clearfilter`).addEventListener('click', () => {
+                clearFilter(manager);
+            });
+
+            // 删除记录按钮点击事件
+            document.getElementById(`${manager}clearrecode`).addEventListener('click', () => {
+                clearRecords(manager);
+            });
+
+            // 导出记录按钮点击事件
+            document.getElementById(`${manager}outputrecode`).addEventListener('click', () => {
+                exportRecords(manager);
+            });
+
+            // 关键词筛选输入事件
+            document.getElementById(`${manager}-keyword-filter`).addEventListener('input', () => {
+                filterRecords(manager);
+            });
+
+            // 页面加载时从localStorage加载数据
+            loadFromLocalStorage(manager);
+        });
+
+        // 从mergeEditTableBody生成对应分管领导的数据
+        function generateDepartmentData(manager) {
+            const mergeTableBody = document.getElementById('mergeEditTableBody');
+            if (!mergeTableBody) {
+                showStatus('合并编辑数据表格不存在', 'error');
+                return;
+            }
+
+            const rows = mergeTableBody.querySelectorAll('tr');
+            if (rows.length === 0) {
+                showStatus('没有可生成的数据', 'error');
+                return;
+            }
+
+            // 获取对应中文名称
+            const managerNameMap = {
+                'lcjr': '李春娟',
+                'szxr': '宋增信',
+                'lcjunr': '刘长军',
+                'dhyr': '段海燕',
+                'xwr': '徐伟',
+                'wlr': '王雷'
+            };
+            const managerName = managerNameMap[manager];
+
+            // 筛选出该分管领导的数据
+            const filteredData = [];
+            rows.forEach(row => {
+                const managerCell = row.cells[4]; // 假设第5列是分管领导
+                if (managerCell && managerCell.textContent.trim() === managerName) {
+                    // // 提取行数据
+                    // const rowData = Array.from(row.cells).map(cell => cell.textContent.trim());
+                    // filteredData.push(rowData);
+                    // 提取行数据并排除最后一列（操作列）
+                    const cells = Array.from(row.cells);
+                    // 排除最后一列（操作列），只取前面的数据列
+                    const rowData = cells.slice(0, -1).map(cell => cell.textContent.trim());
+                    filteredData.push(rowData);
+                }
+            });
+
+            if (filteredData.length === 0) {
+                showStatus(`没有找到${managerName}分管的数据`, 'error');
+                return;
+            }
+
+            // 渲染表格
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+            
+            filteredData.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+
+            // 保存到localStorage
+            localStorage.setItem(`department_${manager}`, JSON.stringify(filteredData));
+            showStatus(`${managerName}部门数据生成成功，共${filteredData.length}条记录`, 'success');
+        }
+
+        // 清除筛选
+        function clearFilter(manager) {
+            const filterInput = document.getElementById(`${manager}-keyword-filter`);
+            if (filterInput) {
+                filterInput.value = '';
+            }
+            // 重新加载全部数据
+            loadFromLocalStorage(manager);
+        }
+
+        // 清除记录
+        function clearRecords(manager) {
+            if (confirm('确定要删除所有记录吗？此操作不可恢复。')) {
+                const tableBody = document.getElementById(`${manager}TableBody`);
+                tableBody.innerHTML = '';
+                localStorage.removeItem(`department_${manager}`);
+                showStatus('所有记录已删除', 'success');
+            }
+        }
+
+        // 导出记录
+        function exportRecords(manager) {
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            if (data.length === 0) {
+                showStatus('没有可导出的数据', 'error');
+                return;
+            }
+
+            // 创建工作簿和工作表
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // 添加表头（假设表头和合并编辑页相同）
+            const mergeTable = document.getElementById('mergeEditTableBody').parentElement;
+            const headers = Array.from(mergeTable.querySelectorAll('th')).map(th => th.textContent);
+            XLSX.utils.unshift_row(ws, headers);
+
+            // 保存工作簿
+            XLSX.utils.book_append_sheet(wb, ws, `${getManagerName(manager)}部门数据`);
+            XLSX.writeFile(wb, `${getManagerName(manager)}部门考勤数据.xlsx`);
+            showStatus('数据导出成功', 'success');
+        }
+
+        // 筛选记录
+        function filterRecords(manager) {
+            const filterText = document.getElementById(`${manager}-keyword-filter`).value.toLowerCase().trim();
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+
+            const filteredData = data.filter(row => 
+                row.some(cell => cell.toLowerCase().includes(filterText))
+            );
+
+            filteredData.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 从localStorage加载数据
+        function loadFromLocalStorage(manager) {
+            const data = JSON.parse(localStorage.getItem(`department_${manager}`) || '[]');
+            const tableBody = document.getElementById(`${manager}TableBody`);
+            tableBody.innerHTML = '';
+
+            data.forEach(data => {
+                const tr = document.createElement('tr');
+                data.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 显示状态提示
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('headerStatus');
+            statusEl.textContent = message;
+            statusEl.className = `header-status ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // 获取分管领导中文名称
+        function getManagerName(manager) {
+            const managerNameMap = {
+                'lichunjuan': '李春娟',
+                'songzengxin': '宋增信',
+                'liuchangjun': '刘长军',
+                'duanhaiyan': '段海燕',
+                'xuwei': '徐伟',
+                'wanglei': '王雷'
+            };
+            return managerNameMap[manager] || manager;
+        }
+    </script>
+</body>
+</html>
