@@ -7,6 +7,9 @@
     <!-- 使用最新版本的html2canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
+        .header{
+            border-bottom: 5px solid #000;
+        }
         .header h1{
             margin-left: 20px;
             text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
@@ -93,6 +96,61 @@
             color: white;
             text-align: center;
         }
+        .main{
+            display: flex;
+        }
+        .task{
+            margin-top: 10px;
+            width: 250px;
+            min-height: 900px;
+            background-color: rgba(144, 179, 196, 0.671);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            height: auto;
+        }
+        #taskList{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; 
+        }
+        .task h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .task-btn {
+            width: 180px;
+            height: 50px;
+            margin: 5px 0;
+            padding: 8px;
+            font-size: 20px;
+            background-color: #bb74f5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 15px;
+        }
+        .task-btn:hover,
+        .task-btn.active {
+            background-color: #860808;
+            font-weight: bold;
+        }
+        .textpic{
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 1rem 20rem;
+            width: 1200px;
+            display: flex;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -101,21 +159,33 @@
             <h1>图文编辑器</h1>
         </div>
         <div class="controls">
+            <button id="newtask">新建任务</button>
             <button id="addTextBtn">添加文字</button>
             <button id="addFirstimgBtn">添加标头图片</button>
             <button id="addImageBtn">添加图片</button>
             <button id="outputfile">导出图片</button>
             <button id="savefile">保存内容</button>
             <button id="clearfile">清除内容</button>
+            <button id="cleartask">删除任务</button>
         </div>
     </div>
-    <div class="editor-container">
-        <div class="firstimg"  contenteditable="true"></div>
-        <div class="editor" contenteditable="true">
-            <p style="text-indent: 2em;">开始输入</p>
+    <div class="main">
+        <div class="task">
+            <h3>历史任务</h3>
+            <div id="taskList"></div>
         </div>
-        <div class="blue" contenteditable="true"></div>
+        <div class="textpic">
+            <div class="editor-container">
+                <div class="firstimg"  contenteditable="true"></div>
+                <div class="editor" contenteditable="true">
+                    <p style="text-indent: 2em;">开始输入</p>
+                </div>
+                <div class="blue" contenteditable="true"></div>
+            </div>
+        </div>
+        
     </div>
+    
 
     <script>
         const editor = document.querySelector('.editor');
@@ -126,28 +196,91 @@
         const addFirstimgBtn = document.getElementById('addFirstimgBtn');
         const savefileBtn = document.getElementById('savefile');
         const clearfileBtn = document.getElementById('clearfile');
+        const taskList = document.getElementById('taskList');
+        let currentTask = null;
 
-        function loadContent() {
-            const savedContent = localStorage.getItem('editorContent');
-            const savedFirstImg = localStorage.getItem('firstImgContent');
-            const savedBlueContent = localStorage.getItem('blueContent');
+
+        function init() {
+            loadTaskList();
+        }
+
+        function getTasks() {
+            const tasks = localStorage.getItem('editorTasks');
+            return tasks ? JSON.parse(tasks) : [];
+        }
+
+        function saveTasks(tasks) {
+            localStorage.setItem('editorTasks', JSON.stringify(tasks));
+        }
+
+        function loadTaskList() {
+            const tasks = getTasks();
+            taskList.innerHTML = '';
             
-            if (savedFirstImg) {
-                firstimgContainer.innerHTML = savedFirstImg;
-            }
-            if (savedContent) {
-                editor.innerHTML = savedContent;
-            }
-            if (savedBlueContent) {
-                blueContainer.innerHTML = savedBlueContent;
+            tasks.forEach(taskName => {
+                const btn = document.createElement('button');
+                btn.className = `task-btn ${currentTask === taskName ? 'active' : ''}`;
+                btn.textContent = taskName;
+                btn.addEventListener('click', () => {
+                    loadTaskContent(taskName);
+                });
+                taskList.appendChild(btn);
+            });
+        }
+
+        function loadTaskContent(taskName) {
+            const taskData = localStorage.getItem(`task_${taskName}`);
+            if (taskData) {
+                const { firstImg, content, blue } = JSON.parse(taskData);
+                firstimgContainer.innerHTML = firstImg;
+                editor.innerHTML = content;
+                blueContainer.innerHTML = blue;
+                currentTask = taskName;
+                document.querySelectorAll('.task-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === taskName);
+                });
             }
         }
 
-        function saveContent() {
-            localStorage.setItem('editorContent', editor.innerHTML);
-            localStorage.setItem('firstImgContent', firstimgContainer.innerHTML);
-            localStorage.setItem('blueContent', blueContainer.innerHTML);
-            alert('内容已保存！');
+        function saveTaskContent(taskName, isNew = false) {
+            const taskData = {
+                firstImg: firstimgContainer.innerHTML,
+                content: editor.innerHTML,
+                blue: blueContainer.innerHTML,
+                timestamp: new Date().getTime()
+            };
+
+            localStorage.setItem(`task_${taskName}`, JSON.stringify(taskData));
+            
+            if (isNew) {
+                const tasks = getTasks();
+                if (!tasks.includes(taskName)) {
+                    tasks.unshift(taskName);
+                    saveTasks(tasks);
+                }
+            }
+            
+            currentTask = taskName;
+            loadTaskList();
+            alert(`任务 "${taskName}" 已保存！`);
+        }
+
+        function handleSaveTask() {
+            if (currentTask) {
+                if (confirm(`是否覆盖当前任务 "${currentTask}"？`)) {
+                    saveTaskContent(currentTask, false);
+                } else {
+                    const newTaskName = prompt('请输入新任务名称：');
+                    if (newTaskName && newTaskName.trim() !== '') {
+                        saveTaskContent(newTaskName.trim(), true);
+                    }
+                }
+            } else {
+                const taskName = prompt('请输入任务名称：');
+                if (taskName && taskName.trim() !== '') {
+                    saveTaskContent(taskName.trim(), true);
+                }
+            }
         }
 
         function clearContent() {
@@ -155,13 +288,14 @@
                 editor.innerHTML = '';
                 firstimgContainer.innerHTML = '';
                 blueContainer.innerHTML = '';
-                localStorage.removeItem('editorContent');
-                localStorage.removeItem('firstImgContent');
-                localStorage.removeItem('blueContent');
+                currentTask = null;
+                document.querySelectorAll('.task-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
             }
         }
 
-        window.addEventListener('load', loadContent);
+        window.addEventListener('load', init);
 
         addTextBtn.addEventListener('click', () => {
             const text = prompt('请输入要添加的文字：');
@@ -226,8 +360,7 @@
             input.click();
         });
 
-        savefileBtn.addEventListener('click', saveContent);
-
+        savefileBtn.addEventListener('click', handleSaveTask);
         clearfileBtn.addEventListener('click', clearContent);
 
         const outputfileBtn = document.getElementById('outputfile');
@@ -245,7 +378,7 @@
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
-                link.download = '导出公众号图片.png';
+                link.download = currentTask ? `${currentTask}.png` : '导出公众号图片.png';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -253,6 +386,60 @@
                 console.error('导出失败:', error);
                 alert('导出图片失败，请重试！错误信息：' + error.message);
             });
+        });
+
+        const newTaskBtn = document.getElementById('newtask');
+
+        newTaskBtn.addEventListener('click', () => {
+            const taskName = prompt('请输入新任务名称：');
+
+            if (taskName && taskName.trim() !== '') {
+                const trimmedName = taskName.trim();
+                const tasks = getTasks();
+
+                if (tasks.includes(trimmedName)) {
+                    alert(`任务 "${trimmedName}" 已存在，请使用其他名称！`);
+                    return;
+                }
+
+                editor.innerHTML = '<p style="text-indent: 2em;">开始输入</p>';
+                firstimgContainer.innerHTML = '';
+                blueContainer.innerHTML = '';
+
+                saveTaskContent(trimmedName, true);
+
+                loadTaskContent(trimmedName);
+            } else if (taskName !== null) {
+
+                alert('任务名称不能为空！');
+            }
+        });
+
+        const cleartaskBtn = document.getElementById('cleartask');
+
+        cleartaskBtn.addEventListener('click', () => {
+            if (!currentTask) {
+                alert('没有选中的任务可删除！');
+                return;
+            }
+
+            if (confirm(`确定要删除当前任务 "${currentTask}" 吗？此操作不可恢复！`)) {
+                localStorage.removeItem(`task_${currentTask}`);
+
+                const tasks = getTasks();
+                const updatedTasks = tasks.filter(task => task !== currentTask);
+                saveTasks(updatedTasks);
+
+                editor.innerHTML = '<p style="text-indent: 2em;">开始输入</p>';
+                firstimgContainer.innerHTML = '';
+                blueContainer.innerHTML = '';
+
+                currentTask = null;
+
+                loadTaskList();
+
+                alert(`任务 "${currentTask}" 已成功删除！`);
+            }
         });
     </script>
 </body>
