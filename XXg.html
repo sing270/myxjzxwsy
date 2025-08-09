@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绿泡泡公众号图文编辑器</title>
+    <!-- 使用最新版本的html2canvas -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        .header{
+            border-bottom: 5px solid #000;
+            background: linear-gradient(135deg, #eb2535, #e7b40e, #13f5e9, #bb74f5);
+        }
+        .header h1{
+            margin-left: 20px;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            font-size: 50px;
+            text-align: center;
+            color: white;
+            letter-spacing: 20px;
+            font-weight: 700;
+        }
+        .editor-container {
+            margin: 20px;
+            background-color: #168ef0;
+            width: 657px;
+            display: block;
+        }
+        .controls button{
+            margin-bottom: 10px;
+            width: 130px;
+            height: 40px;
+            border-style: none;
+            background-color: #168ef0;
+            color: white;
+            font-size: 17px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .controls{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        button{
+            padding: 6px 12px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .editor{
+            width: 600px;
+            min-height: 300px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            background-color: white;
+            margin: 1rem 1rem;
+            margin-bottom: 10px;
+            font-size: 22px;
+            text-indent: 2em;
+        }
+        .firstimg{
+            width: 658px;
+            min-height: 300px;
+            border: 1px solid #ccc;
+            line-height: 1.5;
+            word-wrap: break-word;
+            background-color: white;
+            margin: 1rem 0rem;
+            padding: 0;
+            margin: 0;
+            display: block;
+            border-style: none;
+        }
+        .editor p{
+            margin: 0 0 10px 0;
+            text-indent: 2em;
+            font-size: 30px;
+        }
+        .editor img{
+            max-width: 100%;
+            height: auto;
+            text-indent: 0em;
+        }
+        .firstimg img{
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+        .blue{
+            min-height: 10px;
+            white-space: normal;
+            padding: 10px;
+            word-break: break-word;
+            font-size: 20px;
+            color: white;
+            text-align: center;
+        }
+        .main{
+            display: flex;
+        }
+        .task{
+            margin-top: 10px;
+            min-width: 250px;
+            width: 250px;
+            min-height: 900px;
+            background-color: rgba(223, 223, 223, 0.671);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            height: auto;
+        }
+        #taskList{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; 
+        }
+        .task h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .task-btn {
+            width: 180px;
+            height: 50px;
+            margin: 5px 0;
+            padding: 8px;
+            font-size: 20px;
+            background-color: #06c56c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 15px;
+        }
+        .task-btn:hover,
+        .task-btn.active,
+        .controls button:hover,
+        .controls button.active{
+            background-color: #860808;
+            font-weight: bold;
+        }
+        .editwindow{
+            margin-top: 1rem;
+        }
+        .edityangshi{
+            width: 1100px;
+            height: 50px;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            padding: 0rem 2rem;
+            margin: 0rem 5rem;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+
+        }
+        .edityangshi select{
+            width: 60px;
+            height: 20px;
+        }
+        .color-controls {
+            margin-left: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .color-item input {
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .textpic{
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 1rem 20rem;
+            width: 680px;
+            display: flex;
+            justify-content: center;
+            background-color: white; /* 默认背景色 */
+        }
+        .textModal{
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .textwindow{
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            height: 550px;
+        }
+        .textwindow h3{
+            margin-top: 0;
+        }
+        .textInput{
+            width: 576px;
+            height: 430px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .textBtn{
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .confirmTextBtn{
+            padding: 8px 16px;
+            background: #168ef0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .cancelTextBtn{
+            padding: 8px 16px;
+            background: #af1d03;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>图文编辑器</h1>
+        </div>
+        <div class="controls">
+            <button id="newtask">新建任务</button>
+            <button id="addFirstimgBtn">添加标头图片</button>
+            <button id="addTextBtn">添加文字</button>
+            <button id="addImageBtn">添加正文图片</button>
+            <button id="outputfile">导出PNG</button>
+            <button id="savefile">保存内容</button>
+            <button id="clearfile">清除内容</button>
+            <button id="cleartask">删除任务</button>
+        </div>
+    </div>
+    <div class="main">
+        <div class="task">
+            <h3>历史任务</h3>
+            <div id="taskList"></div>
+        </div>
+        <div class="editwindow">
+            <div class="edityangshi">
+                字号：
+                <select name="zihao" id="zihao">
+                    <option></option>
+                    <option>10</option>
+                    <option>12</option>
+                    <option>14</option>
+                    <option>16</option>
+                    <option>18</option>
+                    <option>20</option>
+                    <option>22</option>
+                    <option>24</option>
+                    <option>26</option>
+                    <option>28</option>
+                    <option>30</option>
+                    <option>32</option>
+                    <option>34</option>
+                    <option>36</option>
+                    <option>38</option>
+                </select>
+                <div class="color-controls">
+                    <div class="color-item">
+                        背景色：
+                        <input type="color" id="bgColorPicker" value="#ffffff">
+                    </div>
+                    <div class="color-item">
+                        文字色：
+                        <input type="color" id="textColorPicker" value="#000000">
+                    </div>
+                </div>
+            </div>
+            <div class="textpic">
+                <div class="editor-container">
+                    <div class="firstimg"  contenteditable="true"></div>
+                    <div class="editor" contenteditable="true"></div>
+                    <div class="blue" contenteditable="true"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="textModal" class="textModal">
+        <div class="textwindow">
+            <h3>编辑文字内容</h3>
+            <textarea id="textInput" class="textInput"></textarea>
+            <div class="textBtn">
+                <button id="confirmTextBtn" class="confirmTextBtn">确定</button>
+                <button id="cancelTextBtn" class="cancelTextBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <script>
+        const editor = document.querySelector('.editor');
+        const firstimgContainer = document.querySelector('.firstimg');
+        const blueContainer = document.querySelector('.blue');
+        const addTextBtn = document.getElementById('addTextBtn');
+        const addImageBtn = document.getElementById('addImageBtn');
+        const addFirstimgBtn = document.getElementById('addFirstimgBtn');
+        const savefileBtn = document.getElementById('savefile');
+        const clearfileBtn = document.getElementById('clearfile');
+        const taskList = document.getElementById('taskList');
+        const textModal = document.getElementById('textModal');
+        const textInput = document.getElementById('textInput');
+        const confirmTextBtn = document.getElementById('confirmTextBtn');
+        const cancelTextBtn = document.getElementById('cancelTextBtn');
+        const zihaoSelect = document.getElementById('zihao');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const textColorPicker = document.getElementById('textColorPicker');
+        const textpic = document.querySelector('.textpic');
+        const editorContainer = document.querySelector('.editor-container');
+
+        let currentTask = null;
+
+        function init() {
+            loadTaskList();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            zihaoSelect.addEventListener('change', applyFontSize);
+            
+            bgColorPicker.addEventListener('input', (e) => {
+                editorContainer.style.backgroundColor = e.target.value;
+                blueContainer.style.backgroundColor = e.target.value;
+            });
+            
+            textColorPicker.addEventListener('input', applyTextColor);
+            
+            editor.addEventListener('input', handleEditorInput);
+        }
+
+        function applyFontSize() {
+            const fontSize = zihaoSelect.value;
+            const defaultSize = '30px';
+            
+            const sizeToApply = fontSize ? `${fontSize}px` : defaultSize;
+            
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                document.execCommand('fontSize', false, '');
+                const span = document.createElement('span');
+                span.style.fontSize = sizeToApply;
+                span.appendChild(selection.getRangeAt(0).extractContents());
+                selection.getRangeAt(0).insertNode(span);
+            }
+            
+            editor.style.fontSize = sizeToApply;
+            document.querySelectorAll('.editor p').forEach(p => {
+                if (!p.style.fontSize) {
+                    p.style.fontSize = sizeToApply;
+                }
+            });
+        }
+
+        function applyTextColor() {
+            const color = textColorPicker.value;
+            document.execCommand('foreColor', false, color);
+        }
+
+        function handleEditorInput() {
+            const fontSize = zihaoSelect.value;
+            const defaultSize = '30px';
+            const sizeToApply = fontSize ? `${fontSize}px` : defaultSize;
+            
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const parentElement = selection.getRangeAt(0).commonAncestorContainer;
+                const element = parentElement.nodeType === 1 ? parentElement : parentElement.parentElement;
+                
+                if (element && element.tagName === 'P' && !element.style.fontSize) {
+                    element.style.fontSize = sizeToApply;
+                }
+            }
+        }
+
+        function getTasks() {
+            const tasks = localStorage.getItem('editorTasks');
+            return tasks ? JSON.parse(tasks) : [];
+        }
+
+        function saveTasks(tasks) {
+            localStorage.setItem('editorTasks', JSON.stringify(tasks));
+        }
+
+        function loadTaskList() {
+            const tasks = getTasks();
+            taskList.innerHTML = '';
+            
+            tasks.forEach(taskName => {
+                const btn = document.createElement('button');
+                btn.className = `task-btn ${currentTask === taskName ? 'active' : ''}`;
+                btn.textContent = taskName;
+                btn.addEventListener('click', () => {
+                    loadTaskContent(taskName);
+                });
+                taskList.appendChild(btn);
+            });
+        }
+
+        function loadTaskContent(taskName) {
+            const taskData = localStorage.getItem(`task_${taskName}`);
+            if (taskData) {
+                const { firstImg, content, blue, bgColor, textColor, fontSize } = JSON.parse(taskData);
+                firstimgContainer.innerHTML = firstImg;
+                editor.innerHTML = content;
+                blueContainer.innerHTML = blue;
+                
+                if (bgColor) {
+                    textpic.style.backgroundColor = bgColor;
+                    bgColorPicker.value = bgColor;
+                } else {
+                    textpic.style.backgroundColor = '#ffffff';
+                    bgColorPicker.value = '#ffffff';
+                }
+                
+                if (textColor) {
+                    textColorPicker.value = textColor;
+                } else {
+                    textColorPicker.value = '#000000';
+                }
+                
+                if (fontSize) {
+                    zihaoSelect.value = fontSize;
+                    editor.style.fontSize = `${fontSize}px`;
+                } else {
+                    zihaoSelect.value = '';
+                    editor.style.fontSize = '30px';
+                }
+                
+                currentTask = taskName;
+                document.querySelectorAll('.task-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === taskName);
+                });
+            }
+        }
+
+        function saveTaskContent(taskName, isNew = false) {
+            const taskData = {
+                firstImg: firstimgContainer.innerHTML,
+                content: editor.innerHTML,
+                blue: blueContainer.innerHTML,
+                timestamp: new Date().getTime(),
+                bgColor: textpic.style.backgroundColor,
+                textColor: textColorPicker.value,
+                fontSize: zihaoSelect.value
+            };
+
+            localStorage.setItem(`task_${taskName}`, JSON.stringify(taskData));
+            
+            if (isNew) {
+                const tasks = getTasks();
+                if (!tasks.includes(taskName)) {
+                    tasks.unshift(taskName);
+                    saveTasks(tasks);
+                }
+            }
+            
+            currentTask = taskName;
+            loadTaskList();
+            alert(`任务 "${taskName}" 已保存！`);
+        }
+
+        function handleSaveTask() {
+            if (currentTask) {
+                if (confirm(`是否覆盖当前任务 "${currentTask}"？`)) {
+                    saveTaskContent(currentTask, false);
+                } else {
+                    const newTaskName = prompt('请输入新任务名称：');
+                    if (newTaskName && newTaskName.trim() !== '') {
+                        saveTaskContent(newTaskName.trim(), true);
+                    }
+                }
+            } else {
+                const taskName = prompt('请输入任务名称：');
+                if (taskName && taskName.trim() !== '') {
+                    saveTaskContent(taskName.trim(), true);
+                }
+            }
+        }
+
+        function clearContent() {
+            if (confirm('确定要清除所有内容吗？')) {
+                editor.innerHTML = '';
+                firstimgContainer.innerHTML = '';
+                blueContainer.innerHTML = '';
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
+                editor.style.fontSize = '30px';
+                
+                currentTask = null;
+                document.querySelectorAll('.task-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+        }
+
+        window.addEventListener('load', init);
+
+        addTextBtn.addEventListener('click', () => {
+            textInput.value = ''; 
+            textModal.style.display = 'flex'; 
+            textInput.focus(); 
+        });
+
+        cancelTextBtn.addEventListener('click', () => {
+            textModal.style.display = 'none';
+        });
+
+        confirmTextBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (text) {
+                const p = document.createElement('p');
+                p.textContent = text;
+                const fontSize = zihaoSelect.value;
+                p.style.fontSize = fontSize ? `${fontSize}px` : '30px';
+                p.style.color = textColorPicker.value;
+                editor.appendChild(p);
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.setStartAfter(p);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            textModal.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && textModal.style.display === 'flex') {
+                textModal.style.display = 'none';
+            }
+        });
+
+        textModal.addEventListener('click', (e) => {
+            if (e.target === textModal) {
+                textModal.style.display = 'none';
+            }
+        });
+
+        addImageBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.crossOrigin = 'anonymous';
+                        editor.appendChild(img);
+                        const p = document.createElement('p');
+                        p.innerHTML = '&nbsp;';
+                        const fontSize = zihaoSelect.value;
+                        p.style.fontSize = fontSize ? `${fontSize}px` : '30px';
+                        editor.appendChild(p);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            input.click();
+        });
+
+        addFirstimgBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        firstimgContainer.innerHTML = ''
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.crossOrigin = 'anonymous';
+                        firstimgContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            input.click();
+        });
+
+        savefileBtn.addEventListener('click', handleSaveTask);
+        clearfileBtn.addEventListener('click', clearContent);
+
+        const outputfileBtn = document.getElementById('outputfile');
+        outputfileBtn.addEventListener('click', () => {
+            const container = document.querySelector('.editor-container');
+            
+            html2canvas(container, {
+                useCORS: true,
+                logging: true,
+                scale: 2,
+                allowTaint: false,
+                backgroundColor: null,
+                windowWidth: container.scrollWidth,
+                windowHeight: container.scrollHeight
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = currentTask ? `${currentTask}.png` : '导出公众号图片.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(error => {
+                console.error('导出失败:', error);
+                alert('导出图片失败，请重试！错误信息：' + error.message);
+            });
+        });
+
+        const newTaskBtn = document.getElementById('newtask');
+
+        newTaskBtn.addEventListener('click', () => {
+            const taskName = prompt('请输入新任务名称：');
+
+            if (taskName && taskName.trim() !== '') {
+                const trimmedName = taskName.trim();
+                const tasks = getTasks();
+
+                if (tasks.includes(trimmedName)) {
+                    alert(`任务 "${trimmedName}" 已存在，请使用其他名称！`);
+                    return;
+                }
+
+                editor.innerHTML = '';
+                firstimgContainer.innerHTML = '';
+                blueContainer.innerHTML = '';
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
+                editor.style.fontSize = '30px';
+
+                saveTaskContent(trimmedName, true);
+
+                loadTaskContent(trimmedName);
+            } else if (taskName !== null) {
+
+                alert('任务名称不能为空！');
+            }
+        });
+
+        const cleartaskBtn = document.getElementById('cleartask');
+
+        cleartaskBtn.addEventListener('click', () => {
+            if (!currentTask) {
+                alert('没有选中的任务可删除！');
+                return;
+            }
+
+            if (confirm(`确定要删除当前任务 "${currentTask}" 吗？此操作不可恢复！`)) {
+                localStorage.removeItem(`task_${currentTask}`);
+
+                const tasks = getTasks();
+                const updatedTasks = tasks.filter(task => task !== currentTask);
+                saveTasks(updatedTasks);
+
+                editor.innerHTML = '';
+                firstimgContainer.innerHTML = '';
+                blueContainer.innerHTML = '';
+                // 重置样式设置
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
+                editor.style.fontSize = '30px';
+
+                currentTask = null;
+
+                loadTaskList();
+
+                alert(`任务已成功删除！`);
+            }
+        });
+    </script>
+</body>
+</html>
