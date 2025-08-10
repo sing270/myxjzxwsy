@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>绿泡泡公众号图文编辑器</title>
+    <!-- 使用最新版本的html2canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         .header{
             border-bottom: 5px solid #000;
+            background: linear-gradient(135deg, #eb2535, #e7b40e, #13f5e9, #bb74f5);
         }
         .header h1{
             margin-left: 20px;
             text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
             font-size: 50px;
             text-align: center;
+            color: white;
+            letter-spacing: 20px;
+            font-weight: 700;
         }
         .editor-container {
             margin: 20px;
@@ -23,14 +28,14 @@
         }
         .controls button{
             margin-bottom: 10px;
-            margin-left: 20px;
-            width: 150px;
-            height: 50px;
+            width: 130px;
+            height: 40px;
             border-style: none;
             background-color: #168ef0;
             color: white;
-            font-size: 18px;
+            font-size: 17px;
             border-radius: 5px;
+            font-weight: 500;
         }
         .controls{
             display: flex;
@@ -54,6 +59,7 @@
             margin: 1rem 1rem;
             margin-bottom: 10px;
             font-size: 22px;
+            text-indent: 2em;
         }
         .firstimg{
             width: 658px;
@@ -67,22 +73,26 @@
             margin: 0;
             display: block;
             border-style: none;
+            text-align: center;
         }
         .editor p{
             margin: 0 0 10px 0;
             text-indent: 2em;
-            font-size: 22px;
+            font-size: 30px;
         }
         .editor img{
             max-width: 100%;
             height: auto;
+            text-indent: 0em;
+            margin: 0 auto;
+            display: block;
         }
         .firstimg img{
             width: 100%;
             max-width: 100%;
             height: auto;
             display: block;
-            margin: 0;
+            margin: 0 auto;
             padding: 0;
             border: none;
         }
@@ -100,9 +110,10 @@
         }
         .task{
             margin-top: 10px;
+            min-width: 250px;
             width: 250px;
             min-height: 900px;
-            background-color: rgba(144, 179, 196, 0.671);
+            background-color: rgba(223, 223, 223, 0.671);
             border-radius: 5px;
             display: flex;
             flex-direction: column;
@@ -126,7 +137,7 @@
             margin: 5px 0;
             padding: 8px;
             font-size: 20px;
-            background-color: #bb74f5;
+            background-color: #06c56c;
             color: white;
             border: none;
             border-radius: 4px;
@@ -138,17 +149,138 @@
             margin-bottom: 15px;
         }
         .task-btn:hover,
-        .task-btn.active {
+        .task-btn.active,
+        .controls button:hover,
+        .controls button.active{
             background-color: #860808;
             font-weight: bold;
+        }
+        .editwindow{
+            margin-top: 1rem;
+        }
+        .edityangshi{
+            width: 1300px;
+            min-height: 50px;
+            flex-wrap: wrap;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            padding: 0rem 2rem;
+            margin: 0rem 5rem;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        .edityangshi select{
+            width: 60px;
+            height: 20px;
+        }
+        .edityangshi button{
+            border-radius: 3px;
+            background-color: #e6e6e6;
+            border-style: none;
+        }
+        .edityangshi button:hover,
+        .edityangshi button.active{
+            background-color: #860808;
+            color: white;
+        }
+        .font-style-controls{
+            margin-left: 20px;
+            display: flex;
+            gap: 5px;
+        }
+        .align-controls{
+            margin-left: 20px;
+            display: flex;
+            gap: 5px;
+        }
+        .imageSizeControls{
+            margin-left: 20px;
+            display: none;
+            align-items: center;
+        }
+        .imageSizeControls input{
+            width: 40px;
+        }
+        .color-controls {
+            margin-left: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .color-item input {
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
         }
         .textpic{
             border: 3px solid rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             margin: 1rem 20rem;
-            width: 1200px;
+            width: 680px;
             display: flex;
             justify-content: center;
+            background-color: white;
+        }
+        .textModal{
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .textwindow{
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            height: 550px;
+        }
+        .textwindow h3{
+            margin-top: 0;
+        }
+        .textInput{
+            width: 576px;
+            height: 430px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .textBtn{
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .confirmTextBtn{
+            padding: 8px 16px;
+            background: #168ef0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .cancelTextBtn{
+            padding: 8px 16px;
+            background: #af1d03;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -159,10 +291,10 @@
         </div>
         <div class="controls">
             <button id="newtask">新建任务</button>
+            <button id="addFirstimgBtn">添加标头图片</button>
             <button id="addTextBtn">添加文字</button>
-            <button id="addFirstimgBtn">添加标头</button>
-            <button id="addImageBtn">添加图片</button>
-            <button id="outputfile">导出图片</button>
+            <button id="addImageBtn">添加正文图片</button>
+            <button id="outputfile">导出PNG</button>
             <button id="savefile">保存内容</button>
             <button id="clearfile">清除内容</button>
             <button id="cleartask">删除任务</button>
@@ -173,16 +305,84 @@
             <h3>历史任务</h3>
             <div id="taskList"></div>
         </div>
-        <div class="textpic">
-            <div class="editor-container">
-                <div class="firstimg"  contenteditable="true"></div>
-                <div class="editor" contenteditable="true">
-                    <p style="text-indent: 2em;">开始输入</p>
+        <div class="editwindow">
+            <div class="edityangshi">
+                字号：
+                <select name="zihao" id="zihao">
+                    <option></option>
+                    <option>10</option>
+                    <option>12</option>
+                    <option>14</option>
+                    <option>16</option>
+                    <option>18</option>
+                    <option>20</option>
+                    <option>22</option>
+                    <option>24</option>
+                    <option>26</option>
+                    <option>28</option>
+                    <option>30</option>
+                    <option>32</option>
+                    <option>34</option>
+                    <option>36</option>
+                    <option>38</option>
+                </select>
+                <div class="color-controls">
+                    <div class="color-item">
+                        背景色：
+                        <input type="color" id="bgColorPicker" value="#ffffff">
+                    </div>
+                    <div class="color-item">
+                        文字色：
+                        <input type="color" id="textColorPicker" value="#000000">
+                    </div>
                 </div>
-                <div class="blue" contenteditable="true"></div>
+                字体：
+                <select name="fontFamily" id="fontFamily">
+                    <option value="">默认</option>
+                    <option value="SimSun">宋体</option>
+                    <option value="SimHei">黑体</option>
+                    <option value="KaiTi">楷体</option>
+                    <option value="FangSong">仿宋</option>
+                </select>
+
+                <div class="font-style-controls">
+                    <button id="boldBtn" title="粗体"><b>B</b></button>
+                    <button id="italicBtn" title="斜体"><i>I</i></button>
+                    <button id="underlineBtn" title="下划线"><u>U</u></button>
+                    <button id="strikeBtn" title="删除线"><s>S</s></button>
+                </div>
+
+                <div class="align-controls">
+                    <button id="leftAlignBtn" title="左对齐">左对齐</button>
+                    <button id="centerAlignBtn" title="居中对齐">居中对齐</button>
+                    <button id="rightAlignBtn" title="右对齐">右对齐</button>
+                </div>
+
+                <div id="imageSizeControls" class="imageSizeControls">
+                    图片尺寸：
+                    宽：<input type="number" id="imgWidth" min="10" step="10">
+                    高：<input type="number" id="imgHeight" min="10" step="10">
+                    <label><input type="checkbox" id="lockAspectRatio" checked> 锁定比例</label>
+                </div>
+            </div>
+            <div class="textpic">
+                <div class="editor-container">
+                    <div class="firstimg"  contenteditable="true"></div>
+                    <div class="editor" contenteditable="true"></div>
+                    <div class="blue" contenteditable="true"></div>
+                </div>
             </div>
         </div>
-        
+    </div>
+    <div id="textModal" class="textModal">
+        <div class="textwindow">
+            <h3>编辑文字内容</h3>
+            <textarea id="textInput" class="textInput"></textarea>
+            <div class="textBtn">
+                <button id="confirmTextBtn" class="confirmTextBtn">确定</button>
+                <button id="cancelTextBtn" class="cancelTextBtn">取消</button>
+            </div>
+        </div>
     </div>
     
 
@@ -196,11 +396,127 @@
         const savefileBtn = document.getElementById('savefile');
         const clearfileBtn = document.getElementById('clearfile');
         const taskList = document.getElementById('taskList');
-        let currentTask = null;
+        const textModal = document.getElementById('textModal');
+        const textInput = document.getElementById('textInput');
+        const confirmTextBtn = document.getElementById('confirmTextBtn');
+        const cancelTextBtn = document.getElementById('cancelTextBtn');
+        const zihaoSelect = document.getElementById('zihao');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const textColorPicker = document.getElementById('textColorPicker');
+        const textpic = document.querySelector('.textpic');
+        const editorContainer = document.querySelector('.editor-container');
+        const fontFamilySelect = document.getElementById('fontFamily');
+        const boldBtn = document.getElementById('boldBtn');
+        const italicBtn = document.getElementById('italicBtn');
+        const underlineBtn = document.getElementById('underlineBtn');
+        const strikeBtn = document.getElementById('strikeBtn');
+        const leftAlignBtn = document.getElementById('leftAlignBtn');
+        const centerAlignBtn = document.getElementById('centerAlignBtn');
+        const rightAlignBtn = document.getElementById('rightAlignBtn');
+        const imageSizeControls = document.getElementById('imageSizeControls');
+        const imgWidth = document.getElementById('imgWidth');
+        const imgHeight = document.getElementById('imgHeight');
+        const lockAspectRatio = document.getElementById('lockAspectRatio');
+        let selectedImage = null;
+        let imageAspectRatio = 1;
 
+        let currentTask = null;
 
         function init() {
             loadTaskList();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            zihaoSelect.addEventListener('change', applyFontSize);
+            
+            document.addEventListener('selectionchange', updateFontSizeSelection);
+            
+            bgColorPicker.addEventListener('input', (e) => {
+                editorContainer.style.backgroundColor = e.target.value;
+                blueContainer.style.backgroundColor = e.target.value;
+            });
+            
+            textColorPicker.addEventListener('input', applyTextColor);
+            
+            editor.addEventListener('input', handleEditorInput);
+
+            fontFamilySelect.addEventListener('change', applyFontFamily);
+
+            boldBtn.addEventListener('click', () => document.execCommand('bold', false, null));
+            italicBtn.addEventListener('click', () => document.execCommand('italic', false, null));
+            underlineBtn.addEventListener('click', () => document.execCommand('underline', false, null));
+            strikeBtn.addEventListener('click', () => document.execCommand('strikeThrough', false, null));
+
+            leftAlignBtn.addEventListener('click', () => document.execCommand('justifyLeft', false, null));
+            centerAlignBtn.addEventListener('click', () => document.execCommand('justifyCenter', false, null));
+            rightAlignBtn.addEventListener('click', () => document.execCommand('justifyRight', false, null));
+
+            editor.addEventListener('click', handleImageSelection);
+            firstimgContainer.addEventListener('click', handleImageSelection);
+
+            imgWidth.addEventListener('input', handleImageDimensionChange);
+            imgHeight.addEventListener('input', handleImageDimensionChange);
+        }
+
+        function updateFontSizeSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            let element = range.commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const computedStyle = window.getComputedStyle(element);
+            const fontSize = computedStyle.fontSize;
+            const size = parseInt(fontSize, 10);
+
+            if (!isNaN(size)) {
+                zihaoSelect.value = size;
+            } else {
+                zihaoSelect.value = '';
+            }
+        }
+
+        function applyFontSize() {
+            const fontSize = zihaoSelect.value;
+            if (!fontSize) return;
+
+            const sizeToApply = `${fontSize}px`;
+            const selection = window.getSelection();
+            
+            if (selection.rangeCount > 0) {
+                if (!selection.isCollapsed) {
+                    document.execCommand('fontSize', false, '');
+                    const span = document.createElement('span');
+                    span.style.fontSize = sizeToApply;
+                    span.appendChild(selection.getRangeAt(0).extractContents());
+                    selection.getRangeAt(0).insertNode(span);
+                } else {
+                    const style = document.createElement('style');
+                    style.type = 'text/css';
+                    style.textContent = `
+                        [contenteditable=true]:empty:before {
+                            font-size: ${sizeToApply};
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    setTimeout(() => document.head.removeChild(style), 0);
+                    
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('fontSize', false, '');
+                    document.execCommand('foreColor', false, textColorPicker.value);
+                }
+            }
+        }
+
+        function applyTextColor() {
+            const color = textColorPicker.value;
+            document.execCommand('foreColor', false, color);
         }
 
         function getTasks() {
@@ -230,10 +546,31 @@
         function loadTaskContent(taskName) {
             const taskData = localStorage.getItem(`task_${taskName}`);
             if (taskData) {
-                const { firstImg, content, blue } = JSON.parse(taskData);
+                const { firstImg, content, blue, bgColor, textColor, fontSize } = JSON.parse(taskData);
                 firstimgContainer.innerHTML = firstImg;
                 editor.innerHTML = content;
                 blueContainer.innerHTML = blue;
+                
+                if (bgColor) {
+                    textpic.style.backgroundColor = bgColor;
+                    bgColorPicker.value = bgColor;
+                } else {
+                    textpic.style.backgroundColor = '#ffffff';
+                    bgColorPicker.value = '#ffffff';
+                }
+                
+                if (textColor) {
+                    textColorPicker.value = textColor;
+                } else {
+                    textColorPicker.value = '#000000';
+                }
+                
+                if (fontSize) {
+                    zihaoSelect.value = fontSize;
+                } else {
+                    zihaoSelect.value = '';
+                }
+                
                 currentTask = taskName;
                 document.querySelectorAll('.task-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.textContent === taskName);
@@ -246,7 +583,10 @@
                 firstImg: firstimgContainer.innerHTML,
                 content: editor.innerHTML,
                 blue: blueContainer.innerHTML,
-                timestamp: new Date().getTime()
+                timestamp: new Date().getTime(),
+                bgColor: textpic.style.backgroundColor,
+                textColor: textColorPicker.value,
+                fontSize: zihaoSelect.value
             };
 
             localStorage.setItem(`task_${taskName}`, JSON.stringify(taskData));
@@ -287,6 +627,11 @@
                 editor.innerHTML = '';
                 firstimgContainer.innerHTML = '';
                 blueContainer.innerHTML = '';
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
+                
                 currentTask = null;
                 document.querySelectorAll('.task-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -297,10 +642,25 @@
         window.addEventListener('load', init);
 
         addTextBtn.addEventListener('click', () => {
-            const text = prompt('请输入要添加的文字：');
-            if (text !== null && text !== '') {
+            textInput.value = ''; 
+            textModal.style.display = 'flex'; 
+            textInput.focus(); 
+        });
+
+        cancelTextBtn.addEventListener('click', () => {
+            textModal.style.display = 'none';
+        });
+
+        confirmTextBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (text) {
                 const p = document.createElement('p');
                 p.textContent = text;
+                const fontSize = zihaoSelect.value;
+                if (fontSize) {
+                    p.style.fontSize = `${fontSize}px`;
+                }
+                p.style.color = textColorPicker.value;
                 editor.appendChild(p);
                 const range = document.createRange();
                 const sel = window.getSelection();
@@ -308,6 +668,19 @@
                 range.collapse(true);
                 sel.removeAllRanges();
                 sel.addRange(range);
+            }
+            textModal.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && textModal.style.display === 'flex') {
+                textModal.style.display = 'none';
+            }
+        });
+
+        textModal.addEventListener('click', (e) => {
+            if (e.target === textModal) {
+                textModal.style.display = 'none';
             }
         });
 
@@ -324,9 +697,15 @@
                         const img = document.createElement('img');
                         img.src = event.target.result;
                         img.crossOrigin = 'anonymous';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
                         editor.appendChild(img);
                         const p = document.createElement('p');
                         p.innerHTML = '&nbsp;';
+                        const fontSize = zihaoSelect.value;
+                        if (fontSize) {
+                            p.style.fontSize = `${fontSize}px`;
+                        }
                         editor.appendChild(p);
                     };
                     reader.readAsDataURL(file);
@@ -350,6 +729,8 @@
                         const img = document.createElement('img');
                         img.src = event.target.result;
                         img.crossOrigin = 'anonymous';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
                         firstimgContainer.appendChild(img);
                     };
                     reader.readAsDataURL(file);
@@ -401,9 +782,13 @@
                     return;
                 }
 
-                editor.innerHTML = '<p style="text-indent: 2em;">开始输入</p>';
+                editor.innerHTML = '';
                 firstimgContainer.innerHTML = '';
                 blueContainer.innerHTML = '';
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
 
                 saveTaskContent(trimmedName, true);
 
@@ -429,20 +814,70 @@
                 const updatedTasks = tasks.filter(task => task !== currentTask);
                 saveTasks(updatedTasks);
 
-                editor.innerHTML = '<p style="text-indent: 2em;">开始输入</p>';
+                editor.innerHTML = '';
                 firstimgContainer.innerHTML = '';
                 blueContainer.innerHTML = '';
+                textpic.style.backgroundColor = '#ffffff';
+                bgColorPicker.value = '#ffffff';
+                textColorPicker.value = '#000000';
+                zihaoSelect.value = '';
 
                 currentTask = null;
 
                 loadTaskList();
 
-                alert(`任务 "${currentTask}" 已成功删除！`);
+                alert(`任务已成功删除！`);
             }
         });
+
+        function applyFontFamily() {
+            const fontFamily = fontFamilySelect.value;
+            if (fontFamily) {
+                document.execCommand('fontName', false, fontFamily);
+            }
+        }
+
+        function handleImageSelection(e) {
+            if (e.target.tagName === 'IMG') {
+                selectedImage = e.target;
+                selectedImage.style.display = 'block';
+                selectedImage.style.margin = '0 auto';
+                imageSizeControls.style.display = 'flex';
+                imgWidth.value = Math.round(selectedImage.offsetWidth);
+                imgHeight.value = Math.round(selectedImage.offsetHeight);
+                imageAspectRatio = selectedImage.offsetWidth / selectedImage.offsetHeight;
+            } else {
+                selectedImage = null;
+                imageSizeControls.style.display = 'none';
+            }
+        }
+
+        function handleImageDimensionChange(e) {
+            if (!selectedImage) return;
+
+            e.stopPropagation();
+            
+            const width = parseInt(imgWidth.value, 10);
+            const height = parseInt(imgHeight.value, 10);
+            
+            if (isNaN(width) || isNaN(height)) return;
+
+            if (lockAspectRatio.checked) {
+                if (e.target === imgWidth) {
+                    imgHeight.value = Math.round(width / imageAspectRatio);
+                    selectedImage.style.height = `${width / imageAspectRatio}px`;
+                } else {
+                    imgWidth.value = Math.round(height * imageAspectRatio);
+                    selectedImage.style.width = `${height * imageAspectRatio}px`;
+                }
+            }
+
+            selectedImage.style.width = `${width}px`;
+            selectedImage.style.height = `${height}px`;
+            
+            selectedImage.style.display = 'block';
+            selectedImage.style.margin = '0 auto';
+        }
     </script>
 </body>
 </html>
-
-
-
