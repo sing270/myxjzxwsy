@@ -59,10 +59,6 @@
             margin-bottom: 10px;
             font-size: 22px;
             text-indent: 2em;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            gap: 10px; 
         }
         .firstimg{
             width: 658px;
@@ -79,21 +75,26 @@
             text-align: center;
         }
         .editor p{
-            margin: 0 0 10px 0;
+            margin: 0 0 10px 0; /* 单倍行间距的段落间距 */
             text-indent: 2em;
             font-size: 30px;
-            width: 100%;
         }
         .editor img{
             max-width: 100%;
             height: auto;
             text-indent: 0em;
-            margin: 0;
-            display: inline-block;
-        }
-        .editor img:only-child {
             margin: 0 auto;
-            max-width: 100%;
+        }
+        /* 图片容器样式 - 用于并排显示 */
+        .image-container {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        .image-container img {
+            flex: 1;
+            object-fit: contain;
         }
         .firstimg img{
             width: 100%;
@@ -184,31 +185,39 @@
         }
         .edityangshi button{
             border-radius: 3px;
-            background-color: #ccc;
+            background-color: #ebeaea;
             border-style: none;
         }
         .font-style-controls{
-            margin-left: 5px;
+            margin-left: 15px;
             display: flex;
             gap: 5px;
         }
         .align-controls{
-            margin-left: 5px;
+            margin-left: 10px;
             display: flex;
             gap: 5px;
         }
+        .image-layout-controls {
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
         .imageSizeControls{
-            margin-left: 5px;
+            margin-left: 10px;
             display: none;
             align-items: center;
+            margin-bottom: 5px;
         }
         .imageSizeControls input{
             width: 40px;
         }
         .color-controls {
-            margin-left: 5px;
+            margin-left: 10px;
             display: flex;
             gap: 15px;
+            margin-right: 15px;
         }
         .color-item {
             display: flex;
@@ -227,7 +236,7 @@
             width: 680px;
             display: flex;
             justify-content: center;
-            background-color: white; /* 默认背景色 */
+            background-color: white;
         }
         .textModal{
             display: none;
@@ -345,7 +354,7 @@
                 </div>
                 字体：
                 <select name="fontFamily" id="fontFamily">
-                    <option value="">默认</option>
+                    <option value=""></option>
                     <option value="SimSun">宋体</option>
                     <option value="SimHei">黑体</option>
                     <option value="KaiTi">楷体</option>
@@ -357,13 +366,19 @@
                     <button id="italicBtn" title="斜体"><i>I</i></button>
                     <button id="underlineBtn" title="下划线"><u>U</u></button>
                     <button id="strikeBtn" title="删除线"><s>S</s></button>
-                    <button id="formatPainter" title="格式刷">刷</button>
+                    <button id="formatPainter" title="格式刷">格式刷</button>
                 </div>
 
                 <div class="align-controls">
                     <button id="leftAlignBtn" title="左对齐">左对齐</button>
                     <button id="centerAlignBtn" title="居中对齐">居中对齐</button>
                     <button id="rightAlignBtn" title="右对齐">右对齐</button>
+                </div>
+
+                <div class="image-layout-controls">
+                    图片布局：
+                    <button id="singleImageBtn" class="active">单列</button>
+                    <button id="sideBySideBtn">并排</button>
                 </div>
 
                 <div id="imageSizeControls" class="imageSizeControls">
@@ -425,6 +440,11 @@
         const imgWidth = document.getElementById('imgWidth');
         const imgHeight = document.getElementById('imgHeight');
         const lockAspectRatio = document.getElementById('lockAspectRatio');
+        const singleImageBtn = document.getElementById('singleImageBtn');
+        const sideBySideBtn = document.getElementById('sideBySideBtn');
+        
+        let imageLayout = 'single';
+        let pendingImage = null;
 
         const formatPainter = document.getElementById('formatPainter');
         let copiedStyles = null;
@@ -471,6 +491,19 @@
             imgHeight.addEventListener('input', handleImageDimensionChange);
 
             setupFormatPainter();
+
+            singleImageBtn.addEventListener('click', () => {
+                imageLayout = 'single';
+                singleImageBtn.classList.add('active');
+                sideBySideBtn.classList.remove('active');
+                pendingImage = null;
+            });
+
+            sideBySideBtn.addEventListener('click', () => {
+                imageLayout = 'sideBySide';
+                sideBySideBtn.classList.add('active');
+                singleImageBtn.classList.remove('active');
+            });
         }
 
         function setupFormatPainter() {
@@ -798,6 +831,7 @@
                 document.querySelectorAll('.task-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
+                pendingImage = null;
             }
         }
 
@@ -861,14 +895,40 @@
                         img.crossOrigin = 'anonymous';
                         img.style.display = 'block';
                         img.style.margin = '0 auto';
-                        editor.appendChild(img);
-                        const p = document.createElement('p');
-                        p.innerHTML = '&nbsp;';
-                        const fontSize = zihaoSelect.value;
-                        if (fontSize) {
-                            p.style.fontSize = `${fontSize}px`;
+
+                        if (imageLayout === 'sideBySide') {
+                            if (pendingImage) {
+                                const container = document.createElement('div');
+                                container.className = 'image-container';
+                                
+                                container.appendChild(pendingImage);
+                                container.appendChild(img);
+                                
+                                editor.appendChild(container);
+                                
+                                const p = document.createElement('p');
+                                p.innerHTML = '&nbsp;';
+                                const fontSize = zihaoSelect.value;
+                                if (fontSize) {
+                                    p.style.fontSize = `${fontSize}px`;
+                                }
+                                editor.appendChild(p);
+                                
+                                pendingImage = null;
+                            } else {
+                                pendingImage = img;
+                                alert('请再选择一张图片以并排显示');
+                            }
+                        } else {
+                            editor.appendChild(img);
+                            const p = document.createElement('p');
+                            p.innerHTML = '&nbsp;';
+                            const fontSize = zihaoSelect.value;
+                            if (fontSize) {
+                                p.style.fontSize = `${fontSize}px`;
+                            }
+                            editor.appendChild(p);
                         }
-                        editor.appendChild(p);
                     };
                     reader.readAsDataURL(file);
                 }
@@ -951,6 +1011,7 @@
                 bgColorPicker.value = '#ffffff';
                 textColorPicker.value = '#000000';
                 zihaoSelect.value = '';
+                pendingImage = null;
 
                 saveTaskContent(trimmedName, true);
 
@@ -983,6 +1044,7 @@
                 bgColorPicker.value = '#ffffff';
                 textColorPicker.value = '#000000';
                 zihaoSelect.value = '';
+                pendingImage = null;
 
                 currentTask = null;
 
