@@ -176,13 +176,8 @@
         }
         .edityangshi button{
             border-radius: 3px;
-            background-color: #e6e6e6;
+            background-color: #ccc;
             border-style: none;
-        }
-        .edityangshi button:hover,
-        .edityangshi button.active{
-            background-color: #860808;
-            color: white;
         }
         .font-style-controls{
             margin-left: 20px;
@@ -224,7 +219,7 @@
             width: 680px;
             display: flex;
             justify-content: center;
-            background-color: white;
+            background-color: white; /* 默认背景色 */
         }
         .textModal{
             display: none;
@@ -517,6 +512,9 @@
         function applyTextColor() {
             const color = textColorPicker.value;
             document.execCommand('foreColor', false, color);
+        }
+
+        function handleEditorInput() {
         }
 
         function getTasks() {
