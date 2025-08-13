@@ -1,0 +1,331 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.header{
+    border-bottom: 5px solid #000;
+    background: linear-gradient(135deg, #eb2535, #e7b40e, #13f5e9, #bb74f5);
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.title{
+    width: 100%;
+}
+.header h1{
+    margin-left: 20px;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+    font-size: 50px;
+    text-align: center;
+    color: white;
+    letter-spacing: 20px;
+    font-weight: 900;
+}
+.editor-container {
+    margin: 20px;
+    background-color: #168ef0;
+    width: 657px;
+    display: block;
+}
+.controls{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+.controls button{
+    margin-bottom: 10px;
+    width: 180px;
+    height: 40px;
+    border-style: none;
+    background: none;
+    color: white;
+    font-size: 20px;
+    border-radius: 5px;
+    font-weight: 700;
+}
+.editor{
+    width: 625px;
+    min-height: 300px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    background-color: white;
+    margin: 1rem 1rem;
+    margin-bottom: 10px;
+    font-size: 22px;
+    text-indent: 2em;
+}
+.firstimg{
+    width: 658px;
+    min-height: 300px;
+    border: 1px solid #ccc;
+    line-height: 1.5;
+    word-wrap: break-word;
+    background-color: white;
+    margin: 1rem 0rem;
+    padding: 0;
+    margin: 0;
+    display: block;
+    border-style: none;
+    text-align: center;
+}
+.editor p{
+    margin: 0 0 10px 0;
+    text-indent: 2em;
+    font-size: 30px;
+}
+.editor img{
+    max-width: 100%;
+    height: auto;
+    text-indent: 0em;
+    margin: 0 auto;
+}
+.image-container {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    width: 100%;
+}
+.image-container img {
+    flex: 1;
+    object-fit: contain;
+}
+.firstimg img{
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+    border: none;
+}
+.blue{
+    min-height: 10px;
+    white-space: normal;
+    padding: 10px;
+    word-break: break-word;
+    font-size: 20px;
+    color: white;
+    text-align: center;
+}
+.main{
+    display: flex;
+}
+.task{
+    margin-top: 10px;
+    min-width: 250px;
+    width: 250px;
+    min-height: 900px;
+    background-color: rgba(223, 223, 223, 0.671);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    height: auto;
+}
+#taskList{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%; 
+}
+.task h3 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+.task-btn {
+    width: 180px;
+    height: 50px;
+    margin: 5px 0;
+    padding: 8px;
+    font-size: 20px;
+    background-color: #14d1b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 15px;
+}
+.task-btn:hover,
+.task-btn.active,
+.controls button:hover{
+    background-color: #aa150b;
+    font-weight: bold;
+}
+.editwindow{
+    margin-top: 1rem;
+}
+.edityangshi{
+    width: 1300px;
+    min-height: 50px;
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    padding: 0rem 2rem;
+    margin: 0rem 5rem;
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+.edityangshi select{
+    width: 50px;
+    height: 20px;
+}
+.edityangshi button{
+    border-radius: 3px;
+    background-color: #ebeaea;
+    border-style: none;
+}
+.font-style-controls{
+    margin-left: 15px;
+    display: flex;
+    gap: 5px;
+}
+.align-controls{
+    margin-left: 5px;
+    display: flex;
+    gap: 5px;
+}
+.image-layout-controls {
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px;
+}
+.imageSizeControls{
+    margin-left: -8px;
+    display: none;
+    align-items: center;
+    padding: 8px;
+}
+.imageSizeControls input{
+    width: 40px;
+}
+.color-controls {
+    margin-left: 10px;
+    display: flex;
+    gap: 15px;
+    margin-right: 15px;
+}
+.color-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.color-item input {
+    width: 30px;
+    height: 20px;
+    cursor: pointer;
+}
+.textpic{
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    margin: 1rem 20rem;
+    width: 680px;
+    display: flex;
+    justify-content: center;
+    background-color: white;
+}
+.textModal{
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.textwindow{
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    height: 550px;
+}
+.textwindow h3{
+    margin-top: 0;
+}
+.textInput{
+    width: 576px;
+    height: 430px;
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.textBtn{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.confirmTextBtn{
+    padding: 8px 16px;
+    background: #14d1b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+}
+.cancelTextBtn{
+    padding: 8px 16px;
+    background: #af1d03;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+}
+.font-style-controls button.active,
+.font-style-controls button.hover,
+.align-controls button.active,
+.align-controls button:hover,
+.image-layout-controls button.active,
+.image-layout-controls button:hover{
+    background-color: #14d1b8;
+    color: white;
+    font-weight: 700;
+    border-style: none;
+}
+.font-style-controls button,
+.align-controls button,
+.image-layout-controls button{
+    padding: 5px 10px;
+    margin: 0 2px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#boldBtn,
+#italicBtn,
+#underlineBtn,
+#strikeBtn{
+    width: 30px;
+}
+.footer{
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #ffffff;
+    background-color: #168ef0;
+}
