@@ -3,314 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>绿泡泡公众号图文编辑器</title>
+    <title>绿泡泡公众号图文工坊</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        .header{
-            border-bottom: 5px solid #000;
-            background: linear-gradient(135deg, #eb2535, #e7b40e, #13f5e9, #bb74f5);
-        }
-        .header h1{
-            margin-left: 20px;
-            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-            font-size: 50px;
-            text-align: center;
-            color: white;
-            letter-spacing: 20px;
-            font-weight: 700;
-        }
-        .editor-container {
-            margin: 20px;
-            background-color: #168ef0;
-            width: 657px;
-            display: block;
-        }
-        .controls button{
-            margin-bottom: 10px;
-            width: 130px;
-            height: 40px;
-            border-style: none;
-            background-color: #168ef0;
-            color: white;
-            font-size: 17px;
-            border-radius: 5px;
-            font-weight: 500;
-        }
-        .controls{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-        button{
-            padding: 6px 12px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        .editor{
-            width: 600px;
-            min-height: 300px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            background-color: white;
-            margin: 1rem 1rem;
-            margin-bottom: 10px;
-            font-size: 22px;
-            text-indent: 2em;
-        }
-        .firstimg{
-            width: 658px;
-            min-height: 300px;
-            border: 1px solid #ccc;
-            line-height: 1.5;
-            word-wrap: break-word;
-            background-color: white;
-            margin: 1rem 0rem;
-            padding: 0;
-            margin: 0;
-            display: block;
-            border-style: none;
-            text-align: center;
-        }
-        .editor p{
-            margin: 0 0 10px 0; /* 单倍行间距的段落间距 */
-            text-indent: 2em;
-            font-size: 30px;
-        }
-        .editor img{
-            max-width: 100%;
-            height: auto;
-            text-indent: 0em;
-            margin: 0 auto;
-        }
-        /* 图片容器样式 - 用于并排显示 */
-        .image-container {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-            width: 100%;
-        }
-        .image-container img {
-            flex: 1;
-            object-fit: contain;
-        }
-        .firstimg img{
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            padding: 0;
-            border: none;
-        }
-        .blue{
-            min-height: 10px;
-            white-space: normal;
-            padding: 10px;
-            word-break: break-word;
-            font-size: 20px;
-            color: white;
-            text-align: center;
-        }
-        .main{
-            display: flex;
-        }
-        .task{
-            margin-top: 10px;
-            min-width: 250px;
-            width: 250px;
-            min-height: 900px;
-            background-color: rgba(223, 223, 223, 0.671);
-            border-radius: 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            height: auto;
-        }
-        #taskList{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%; 
-        }
-        .task h3 {
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .task-btn {
-            width: 180px;
-            height: 50px;
-            margin: 5px 0;
-            padding: 8px;
-            font-size: 20px;
-            background-color: #06c56c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-bottom: 15px;
-        }
-        .task-btn:hover,
-        .task-btn.active,
-        .controls button:hover,
-        .controls button.active{
-            background-color: #860808;
-            font-weight: bold;
-        }
-        .editwindow{
-            margin-top: 1rem;
-        }
-        .edityangshi{
-            width: 1300px;
-            min-height: 50px;
-            flex-wrap: wrap;
-            display: flex;
-            justify-content: start;
-            align-items: center;
-            padding: 0rem 2rem;
-            margin: 0rem 5rem;
-            border: 3px solid rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-        }
-        .edityangshi select{
-            width: 60px;
-            height: 20px;
-        }
-        .edityangshi button{
-            border-radius: 3px;
-            background-color: #ebeaea;
-            border-style: none;
-        }
-        .font-style-controls{
-            margin-left: 15px;
-            display: flex;
-            gap: 5px;
-        }
-        .align-controls{
-            margin-left: 10px;
-            display: flex;
-            gap: 5px;
-        }
-        .image-layout-controls {
-            margin-left: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .imageSizeControls{
-            margin-left: 10px;
-            display: none;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .imageSizeControls input{
-            width: 40px;
-        }
-        .color-controls {
-            margin-left: 10px;
-            display: flex;
-            gap: 15px;
-            margin-right: 15px;
-        }
-        .color-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .color-item input {
-            width: 30px;
-            height: 20px;
-            cursor: pointer;
-        }
-        .textpic{
-            border: 3px solid rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            margin: 1rem 20rem;
-            width: 680px;
-            display: flex;
-            justify-content: center;
-            background-color: white;
-        }
-        .textModal{
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .textwindow{
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 600px;
-            height: 550px;
-        }
-        .textwindow h3{
-            margin-top: 0;
-        }
-        .textInput{
-            width: 576px;
-            height: 430px;
-            margin-bottom: 15px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .textBtn{
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .confirmTextBtn{
-            padding: 8px 16px;
-            background: #168ef0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        .cancelTextBtn{
-            padding: 8px 16px;
-            background: #af1d03;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        #formatPainter.active {
-            background-color: #830606;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="twbj.css" type="text/CSS">
 </head>
 <body>
     <div class="header">
         <div>
-            <h1>图文编辑器</h1>
+            <h1><b>图文编辑工坊</b></h1>
         </div>
         <div class="controls">
             <button id="newtask">新建任务</button>
             <button id="addFirstimgBtn">添加标头图片</button>
             <button id="addTextBtn">添加文字</button>
             <button id="addImageBtn">添加正文图片</button>
-            <button id="outputfile">导出PNG</button>
+            <button id="outputfile">导出图片</button>
             <button id="savefile">保存内容</button>
             <button id="clearfile">清除内容</button>
             <button id="cleartask">删除任务</button>
@@ -363,7 +70,7 @@
 
                 <div class="font-style-controls">
                     <button id="boldBtn" title="粗体"><b>B</b></button>
-                    <button id="italicBtn" title="斜体"><i>I</i></button>
+                    <button id="italicBtn" title="斜体"><i><b>I</b></i></button>
                     <button id="underlineBtn" title="下划线"><u>U</u></button>
                     <button id="strikeBtn" title="删除线"><s>S</s></button>
                     <button id="formatPainter" title="格式刷">格式刷</button>
@@ -371,8 +78,9 @@
 
                 <div class="align-controls">
                     <button id="leftAlignBtn" title="左对齐">左对齐</button>
-                    <button id="centerAlignBtn" title="居中对齐">居中对齐</button>
+                    <button id="centerAlignBtn" title="居中">居中</button>
                     <button id="rightAlignBtn" title="右对齐">右对齐</button>
+                    <button id="justifyAlignBtn" title="两端">两端</button>
                 </div>
 
                 <div class="image-layout-controls">
@@ -407,6 +115,9 @@
             </div>
         </div>
     </div>
+    <div class="footer">
+        © 2025 Graphic and Text Editing | Make official account creation easier
+    </div>
     
 
     <script>
@@ -436,6 +147,7 @@
         const leftAlignBtn = document.getElementById('leftAlignBtn');
         const centerAlignBtn = document.getElementById('centerAlignBtn');
         const rightAlignBtn = document.getElementById('rightAlignBtn');
+        const justifyAlignBtn = document.getElementById('justifyAlignBtn');
         const imageSizeControls = document.getElementById('imageSizeControls');
         const imgWidth = document.getElementById('imgWidth');
         const imgHeight = document.getElementById('imgHeight');
@@ -457,6 +169,9 @@
         function init() {
             loadTaskList();
             setupEventListeners();
+
+            editor.style.textAlign = 'justify';
+            justifyAlignBtn.classList.add('active');
         }
 
         function setupEventListeners() {
@@ -475,14 +190,63 @@
 
             fontFamilySelect.addEventListener('change', applyFontFamily);
 
-            boldBtn.addEventListener('click', () => document.execCommand('bold', false, null));
-            italicBtn.addEventListener('click', () => document.execCommand('italic', false, null));
-            underlineBtn.addEventListener('click', () => document.execCommand('underline', false, null));
-            strikeBtn.addEventListener('click', () => document.execCommand('strikeThrough', false, null));
+            document.addEventListener('selectionchange', updateFontFamilySelection);
 
-            leftAlignBtn.addEventListener('click', () => document.execCommand('justifyLeft', false, null));
-            centerAlignBtn.addEventListener('click', () => document.execCommand('justifyCenter', false, null));
-            rightAlignBtn.addEventListener('click', () => document.execCommand('justifyRight', false, null));
+            document.addEventListener('selectionchange', updateBoldButtonState);
+
+            boldBtn.addEventListener('click', () => {
+                document.execCommand('bold', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateItalicButtonState);
+
+            italicBtn.addEventListener('click', () => {
+                document.execCommand('italic', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateUnderlineButtonState);
+
+            underlineBtn.addEventListener('click', () => {
+                document.execCommand('underline', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateStrikeButtonState);
+
+            strikeBtn.addEventListener('click', () => {
+                document.execCommand('strikeThrough', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateLeftAlignButtonState);
+
+            leftAlignBtn.addEventListener('click', () => {
+                document.execCommand('justifyLeft', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateCenterAlignButtonState);
+
+            centerAlignBtn.addEventListener('click', () =>{
+                document.execCommand('justifyCenter', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateRightAlignButtonState);
+
+            rightAlignBtn.addEventListener('click', () =>{
+                document.execCommand('justifyRight', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
+
+            document.addEventListener('selectionchange', updateJustifyAlignButtonState);
+
+            justifyAlignBtn.addEventListener('click', () =>{
+                document.execCommand('justifyFull', false, null);
+                document.dispatchEvent(new Event('selectionchange'));
+            });
 
             editor.addEventListener('click', handleImageSelection);
             firstimgContainer.addEventListener('click', handleImageSelection);
@@ -503,6 +267,15 @@
                 imageLayout = 'sideBySide';
                 sideBySideBtn.classList.add('active');
                 singleImageBtn.classList.remove('active');
+            });
+
+            document.querySelectorAll('.preset-color[data-color]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const color = e.target.dataset.color;
+                    bgColorPicker.value = color;
+                    editorContainer.style.backgroundColor = color;
+                    blueContainer.style.backgroundColor = color;
+                });
             });
         }
 
@@ -640,6 +413,8 @@
                 document.execCommand('justifyCenter', false, null);
             } else if (copiedStyles.textAlign === 'right') {
                 document.execCommand('justifyRight', false, null);
+            } else if (copiedStyles.textAlign === 'justify') {
+                document.execCommand('justifyFull', false, null);
             }
             
             document.execCommand('styleWithCSS', false, false);
@@ -1054,6 +829,29 @@
             }
         });
 
+        function updateFontFamilySelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            let element = range.commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const computedStyle = window.getComputedStyle(element);
+            const fontFamily = computedStyle.fontFamily;
+            const family = fontFamily.split(',')[0].replace(/['"]/g, '').trim();
+
+            if (family) {
+                fontFamilySelect.value = family;
+            } else {
+                fontFamilySelect.value = '';
+            }
+        }
+
         function applyFontFamily() {
             const fontFamily = fontFamilySelect.value;
             if (fontFamily) {
@@ -1101,6 +899,215 @@
             
             selectedImage.style.display = 'block';
             selectedImage.style.margin = '0 auto';
+        }
+
+        function updateBoldButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                boldBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const isBold = window.getComputedStyle(element).fontWeight === 'bold' 
+                || window.getComputedStyle(element).fontWeight === '700';
+
+            if (isBold) {
+                boldBtn.classList.add('active');
+            } else {
+                boldBtn.classList.remove('active');
+            }
+        }
+
+        function updateItalicButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                italicBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const isItalic = window.getComputedStyle(element).fontStyle === 'italic';
+            
+            if (isItalic) {
+                italicBtn.classList.add('active');
+            } else {
+                italicBtn.classList.remove('active');
+            }
+        }
+
+        function updateUnderlineButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                underlineBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const isUnderline = window.getComputedStyle(element).textDecoration.includes('underline');
+
+            if (isUnderline) {
+                underlineBtn.classList.add('active');
+            } else {
+                underlineBtn.classList.remove('active');
+            }
+        }
+
+        function updateStrikeButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                strikeBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            const isStrike = window.getComputedStyle(element).textDecoration.includes('line-through');
+
+            if (isStrike) {
+                strikeBtn.classList.add('active');
+            } else {
+                strikeBtn.classList.remove('active');
+            }
+        }
+
+        function updateLeftAlignButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                strikeBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            let targetElement = element;
+            while (targetElement && targetElement !== document.body) {
+                const display = window.getComputedStyle(targetElement).display;
+                if (display.includes('block') || display.includes('flex') || display.includes('grid')) {
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+
+            const textAlign = window.getComputedStyle(targetElement).textAlign;
+            const isLeftAligned = textAlign === 'left' || textAlign === 'start';
+
+            if (isLeftAligned) {
+                leftAlignBtn.classList.add('active');
+            } else {
+                leftAlignBtn.classList.remove('active');
+            }
+        }
+
+        function updateCenterAlignButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                strikeBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            let targetElement = element;
+            while (targetElement && targetElement !== document.body) {
+                const display = window.getComputedStyle(targetElement).display;
+                if (display.includes('block') || display.includes('flex') || display.includes('grid')) {
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+
+            const textAlign = window.getComputedStyle(targetElement).textAlign;
+            const isCenterAligned = textAlign === 'center';
+
+            if (isCenterAligned) {
+                centerAlignBtn.classList.add('active');
+            } else {
+                centerAlignBtn.classList.remove('active');
+            }
+        }
+
+        function updateRightAlignButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                strikeBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            let targetElement = element;
+            while (targetElement && targetElement !== document.body) {
+                const display = window.getComputedStyle(targetElement).display;
+                if (display.includes('block') || display.includes('flex') || display.includes('grid')) {
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+
+            const textAlign = window.getComputedStyle(targetElement).textAlign;
+            const isRightAligned = textAlign === 'right' || textAlign === 'end';
+
+            if (isRightAligned) {
+                rightAlignBtn.classList.add('active');
+            } else {
+                rightAlignBtn.classList.remove('active');
+            }
+        }
+
+        function updateJustifyAlignButtonState() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) {
+                strikeBtn.classList.remove('active');
+                return;
+            }
+
+            let element = selection.getRangeAt(0).commonAncestorContainer;
+            if (element.nodeType === Node.TEXT_NODE) {
+                element = element.parentElement;
+            }
+
+            let targetElement = element;
+            while (targetElement && targetElement !== document.body) {
+                const display = window.getComputedStyle(targetElement).display;
+                if (display.includes('block') || display.includes('flex') || display.includes('grid')) {
+                    break;
+                }
+                targetElement = targetElement.parentElement;
+            }
+
+            const textAlign = window.getComputedStyle(targetElement).textAlign;
+            const isJustifyAligned = textAlign === 'justify';
+
+            if (isJustifyAligned) {
+                justifyAlignBtn.classList.add('active');
+            } else {
+                justifyAlignBtn.classList.remove('active');
+            }
         }
     </script>
 </body>
