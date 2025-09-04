@@ -54,7 +54,6 @@
 .editor{
     width: 625px;
     min-height: 300px;
-    border: 1px solid #ccc;
     padding: 10px;
     line-height: 1.5;
     word-wrap: break-word;
@@ -333,4 +332,5 @@
     color: #ffffff;
     background-color: #168ef0;
 }
+
 
