@@ -47,6 +47,10 @@
     border-radius: 5px;
     font-weight: 700;
 }
+.bor1{
+    margin-top: 10px;
+    border: 2px solid #02a7f9;
+}
 .editor{
     width: 625px;
     min-height: 300px;
@@ -329,3 +333,4 @@
     color: #ffffff;
     background-color: #168ef0;
 }
+
