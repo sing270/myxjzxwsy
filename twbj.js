@@ -51,7 +51,9 @@ function initElements() {
         formatPainter: document.getElementById('formatPainter'),
         outputfileBtn: document.getElementById('outputfile'),
         newTaskBtn: document.getElementById('newtask'),
-        cleartaskBtn: document.getElementById('cleartask')
+        cleartaskBtn: document.getElementById('cleartask'),
+        borColorPicker: document.getElementById('borColorPicker'),
+        bor1Container: document.querySelector('.bor1')
     };
 }
 
@@ -556,6 +558,7 @@ const TaskManager = {
         this.elements = elements;
         this.setupEventListeners();
         this.loadTaskList();
+        this.initBorderSettings();
     },
 
     setupEventListeners() {
@@ -594,6 +597,22 @@ const TaskManager = {
                 this.hideTextModal();
             }
         });
+
+        this.elements.borColorPicker.addEventListener('input', () => {
+            this.updateBorderColor();
+        });
+    },
+
+    initBorderSettings() {
+        if (this.elements.bor1Container) {
+            this.elements.bor1Container.style.border = `2px solid #168ef0`;
+        }
+    },
+
+    updateBorderColor() {
+        if (this.elements.bor1Container) {
+            this.elements.bor1Container.style.borderColor = this.elements.borColorPicker.value;
+        }
     },
 
     getTasks() {
