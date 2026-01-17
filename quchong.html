@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel数据去重工具 - 保留完整唯一记录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 30px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            background-color: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nav-btn.active {
+            background-color: #337ecc;
+            font-weight: 500;
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #66b1ff;
+        }
+        .title {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        .page-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .page {
+            display: none;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .page.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            background-color: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:disabled {
+            background-color: #b3d8ff;
+            cursor: not-allowed;
+        }
+        .btn:hover:not(:disabled) {
+            background-color: #337ecc;
+        }
+        .tip {
+            color: #999;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .result-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .export-btn {
+            padding: 10px 20px;
+            background-color: #67c23a;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .export-btn:hover {
+            background-color: #5daf34;
+        }
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+        th {
+            background-color: #fafafa;
+            color: #333;
+            font-weight: 500;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .empty-tip {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-nav">
+        <div class="nav-buttons">
+            <button class="nav-btn active" id="uploadPageBtn">文件上传</button>
+            <button class="nav-btn" id="resultPageBtn">数据处理结果</button>
+        </div>
+        <div class="title">Excel数据去重工具 - 保留唯一记录及关联列内容</div>
+    </div>
+    <div class="page-container">
+        <div class="page active" id="uploadPage">
+            <h2 style="margin-bottom: 25px; color: #333;">Excel文件上传与处理设置</h2>
+            
+            <div class="form-group">
+                <label for="excelFile">1. 上传Excel文件（支持.xlsx/.xls格式）</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls">
+                <div class="tip">提示：仅支持Excel 2007+(.xlsx)和Excel 97-2003(.xls)格式</div>
+            </div>
+
+            <div class="form-group">
+                <label for="startColumn">2. 选择数据源起始列（数据范围开始）</label>
+                <select id="startColumn" disabled>
+                    <option value="">请先上传Excel文件</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="endColumn">3. 选择数据源结束列（数据范围结束）</label>
+                <select id="endColumn" disabled>
+                    <option value="">请先上传Excel文件</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="checkColumn">4. 选择查重列（根据该列去重，保留唯一值）</label>
+                <select id="checkColumn" disabled>
+                    <option value="">请先上传Excel文件</option>
+                </select>
+                <div class="tip">提示：去重后将保留该列首次出现的值，并关联对应行的其他列内容</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn" id="uploadBtn" disabled>上传并解析文件</button>
+                <button class="btn" id="confirmBtn" disabled>确认处理（执行去重）</button>
+            </div>
+        </div>
+        <div class="page" id="resultPage">
+            <div class="result-header">
+                <h2 style="color: #333;">去重结果表格（保留唯一记录及关联列）</h2>
+                <button class="export-btn" id="exportResultBtn" disabled>导出去重结果为Excel</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="resultTable">
+                    <thead id="tableHeader"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        let excelWorkbook = null;
+        let sheetData = [];
+        let columnLetters = [];
+        let maxColumnCount = 0;
+        let processedResult = [];
+
+        const uploadPageBtn = document.getElementById('uploadPageBtn');
+        const resultPageBtn = document.getElementById('resultPageBtn');
+        const uploadPage = document.getElementById('uploadPage');
+        const resultPage = document.getElementById('resultPage');
+
+        const excelFile = document.getElementById('excelFile');
+        const startColumn = document.getElementById('startColumn');
+        const endColumn = document.getElementById('endColumn');
+        const checkColumn = document.getElementById('checkColumn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        const resultTable = document.getElementById('resultTable');
+        const tableHeader = document.getElementById('tableHeader');
+        const tableBody = document.getElementById('tableBody');
+        const exportResultBtn = document.getElementById('exportResultBtn');
+
+        function switchPage(targetPageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(targetPageId).classList.add('active');
+            if (targetPageId === 'uploadPage') {
+                uploadPageBtn.classList.add('active');
+            } else if (targetPageId === 'resultPage') {
+                resultPageBtn.classList.add('active');
+            }
+        }
+
+        uploadPageBtn.addEventListener('click', () => switchPage('uploadPage'));
+        resultPageBtn.addEventListener('click', () => switchPage('resultPage'));
+
+        function generateColumnLetters(count) {
+            const letters = [];
+            for (let i = 0; i < count; i++) {
+                let letter = '';
+                let num = i;
+                while (num >= 0) {
+                    const remainder = num % 26;
+                    letter = String.fromCharCode(65 + remainder) + letter;
+                    num = Math.floor(num / 26) - 1;
+                    if (num < 0) break;
+                }
+                letters.push(letter);
+            }
+            return letters;
+        }
+
+        function fillColumnSelects() {
+            [startColumn, endColumn, checkColumn].forEach(select => {
+                select.innerHTML = '';
+                select.disabled = false;
+            });
+
+            columnLetters.forEach((letter, index) => {
+                [startColumn, endColumn, checkColumn].forEach(select => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = letter;
+                    select.appendChild(option);
+                });
+            });
+
+            startColumn.value = 0;
+            endColumn.value = Math.min(7, maxColumnCount - 1);
+            checkColumn.value = 0;
+        }
+
+        excelFile.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                if (['xlsx', 'xls'].includes(fileExt)) {
+                    uploadBtn.disabled = false;
+                } else {
+                    alert('请上传正确的Excel文件，仅支持.xlsx和.xls格式！');
+                    this.value = '';
+                    uploadBtn.disabled = true;
+                }
+            } else {
+                uploadBtn.disabled = true;
+            }
+        });
+
+        uploadBtn.addEventListener('click', async function() {
+            const file = excelFile.files[0];
+            if (!file) return;
+
+            try {
+                const fileData = await readFileAsArrayBuffer(file);
+                excelWorkbook = XLSX.read(fileData, { type: 'array' });
+
+                const firstSheetName = excelWorkbook.SheetNames[0];
+                const worksheet = excelWorkbook.Sheets[firstSheetName];
+                sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (sheetData.length <= 1) {
+                    alert('Excel工作表中无有效数据，请检查文件！');
+                    excelFile.value = '';
+                    uploadBtn.disabled = true;
+                    return;
+                }
+
+                maxColumnCount = Math.max(...sheetData.map(row => row.length));
+                columnLetters = generateColumnLetters(maxColumnCount);
+
+                fillColumnSelects();
+
+                confirmBtn.disabled = false;
+                alert('Excel文件解析成功！请设置数据范围和查重列，点击「确认处理」执行去重。');
+
+            } catch (error) {
+                console.error('Excel解析失败：', error);
+                alert('Excel文件解析失败，请检查文件完整性或更换文件！');
+            }
+        });
+
+        confirmBtn.addEventListener('click', function() {
+            if (sheetData.length <= 1 || maxColumnCount === 0) return;
+
+            const startColIndex = parseInt(startColumn.value);
+            const endColIndex = parseInt(endColumn.value);
+            const checkColIndex = parseInt(checkColumn.value);
+
+            if (startColIndex > endColIndex) {
+                alert('起始列不能大于结束列，请重新选择！');
+                return;
+            }
+            if (checkColIndex < startColIndex || checkColIndex > endColIndex) {
+                alert('查重列必须在选择的数据源范围内，请重新选择！');
+                return;
+            }
+
+            const dataRows = sheetData.slice(1);
+            const headerRow = sheetData[0];
+
+            const checkValueMap = new Map();
+            processedResult = [];
+
+            const resultHeader = headerRow.slice(startColIndex, endColIndex + 1).map(item => item || '未知列');
+            processedResult.push(resultHeader);
+
+            dataRows.forEach(row => {
+                const checkValue = row[checkColIndex] === undefined ? '' : String(row[checkColIndex]).trim();
+
+                if (checkValue !== '' && !checkValueMap.has(checkValue)) {
+                    checkValueMap.set(checkValue, true);
+
+                    const rowData = [];
+                    for (let i = startColIndex; i <= endColIndex; i++) {
+                        rowData.push(row[i] === undefined ? '' : row[i]);
+                    }
+
+                    processedResult.push(rowData);
+                }
+            });
+
+            renderResultTable();
+            switchPage('resultPage');
+
+            exportResultBtn.disabled = false;
+        });
+
+        function renderResultTable() {
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (processedResult.length <= 1) {
+                tableBody.innerHTML = `<tr><td colspan="${processedResult[0]?.length || 1}" class="empty-tip">无有效去重结果，请检查原始数据！</td></tr>`;
+                return;
+            }
+
+            const theadTr = document.createElement('tr');
+            processedResult[0].forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                theadTr.appendChild(th);
+            });
+            tableHeader.appendChild(theadTr);
+
+            processedResult.slice(1).forEach(rowData => {
+                const tbodyTr = document.createElement('tr');
+                rowData.forEach(cellData => {
+                    const td = document.createElement('td');
+                    td.textContent = cellData;
+                    tbodyTr.appendChild(td);
+                });
+                tableBody.appendChild(tbodyTr);
+            });
+        }
+
+        exportResultBtn.addEventListener('click', function() {
+            if (processedResult.length <= 1) {
+                alert('无有效数据可导出！');
+                return;
+            }
+
+            const worksheet = XLSX.utils.aoa_to_sheet(processedResult);
+
+            const newWorkbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(newWorkbook, worksheet, '去重结果');
+
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' + (today.getMonth() + 1).toString().padStart(2, '0') + '-' + today.getDate().toString().padStart(2, '0');
+            const fileName = `Excel去重结果_${dateStr}.xlsx`;
+
+            XLSX.writeFile(newWorkbook, fileName);
+        });
+
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.onerror = function(e) {
+                    reject(e);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+    </script>
+</body>
+</html>
