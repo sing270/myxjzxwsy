@@ -24,7 +24,7 @@ body {
 }
 .alert-message {
     position: fixed;
-    top: 0;
+    top: 36px;
     left: 56%;
     transform: translateX(-50%);
     background-color: #b5e7c136;
@@ -75,6 +75,7 @@ body {
     max-width: 1200px;
     margin: 30px auto;
     padding: 0 20px;
+    min-width: 1200px;
 }
 .page {
     display: none;
