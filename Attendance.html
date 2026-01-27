@@ -610,7 +610,7 @@
         </section>
     </main>
 
-    <div id="notification" class="fixed top-20 right-4 max-w-md p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center z-50">
+    <div id="notification" class="fixed top-20 right-4 max-w-md p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center z-50 hidden">
         <i id="notification-icon" class="mr-3 text-xl"></i>
         <div id="notification-message" class="text-sm font-medium"></div>
     </div>
@@ -777,7 +777,8 @@
 
     <footer class="bg-white border-t border-gray-200 py-4 mt-8">
         <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-            <p>© 2026 考勤管理系统 - 版权所有</p>
+            <p>© 2026 考勤管理系统 | 打造智能考勤，赋能高效管理</p>
+            <p>保留所有权利 | 技术维护：信息科</a></p>
         </div>
     </footer>
 
@@ -820,37 +821,97 @@
             }
         };
 
+        // 存在问题：显示后不消失
         // 通知模块
+        // const Notification = {
+        //     show(message, type = 'success') {
+        //         const notification = document.getElementById('notification');
+        //         const icon = document.getElementById('notification-icon');
+        //         const messageEl = document.getElementById('notification-message');
+                
+        //         // 设置消息和图标
+        //         messageEl.textContent = message;
+                
+        //         // 设置样式
+        //         notification.className = 'fixed top-20 right-4 max-w-md p-4 rounded-lg shadow-lg transform translate-x-0 transition-transform duration-300 flex items-center z-50';
+                
+        //         if (type === 'success') {
+        //             notification.classList.add('bg-success', 'text-white');
+        //             icon.className = 'mr-3 text-xl fa fa-check-circle';
+        //         } else if (type === 'error') {
+        //             notification.classList.add('bg-danger', 'text-white');
+        //             icon.className = 'mr-3 text-xl fa fa-exclamation-circle';
+        //         } else if (type === 'warning') {
+        //             notification.classList.add('bg-warning', 'text-white');
+        //             icon.className = 'mr-3 text-xl fa fa-exclamation-triangle';
+        //         } else if (type === 'info') {
+        //             notification.classList.add('bg-primary', 'text-white');
+        //             icon.className = 'mr-3 text-xl fa fa-info-circle';
+        //         }
+                
+        //         setTimeout (() => {
+        //             notification.classList.add ('translate-x-full');
+        //         }, 2000);
+        //     }
+        // };
+
+        // 问题已修复
+        // 第二步：完善的通知模块逻辑
         const Notification = {
+            // 显示通知
             show(message, type = 'success') {
                 const notification = document.getElementById('notification');
                 const icon = document.getElementById('notification-icon');
                 const messageEl = document.getElementById('notification-message');
-                
-                // 设置消息和图标
+
+                // 清空原有样式和内容
+                notification.className = 'fixed top-20 right-4 max-w-md p-4 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50';
+                icon.className = '';
+            
+                // 设置消息内容
                 messageEl.textContent = message;
-                
-                // 设置样式
-                notification.className = 'fixed top-20 right-4 max-w-md p-4 rounded-lg shadow-lg transform translate-x-0 transition-transform duration-300 flex items-center z-50';
-                
-                if (type === 'success') {
-                    notification.classList.add('bg-success', 'text-white');
-                    icon.className = 'mr-3 text-xl fa fa-check-circle';
-                } else if (type === 'error') {
-                    notification.classList.add('bg-danger', 'text-white');
-                    icon.className = 'mr-3 text-xl fa fa-exclamation-circle';
-                } else if (type === 'warning') {
-                    notification.classList.add('bg-warning', 'text-white');
-                    icon.className = 'mr-3 text-xl fa fa-exclamation-triangle';
-                } else if (type === 'info') {
-                    notification.classList.add('bg-primary', 'text-white');
-                    icon.className = 'mr-3 text-xl fa fa-info-circle';
-                }
-                
-                setTimeout (() => {
-                notification.classList.add ('translate-x-full');
-                }, 2000);
-            }
+
+                // 根据类型设置样式和图标
+                switch(type) {
+                    case 'success':
+                        // notification.classList.add('bg-success', 'text-white');
+                        // icon.className = 'mr-3 text-xl fa fa-check-circle';
+                        // break;
+                        notification.style.backgroundColor = '#4CAF50';
+                        notification.style.color = '#fff';
+                        // icon.className = 'mr-3 text-xl fa fa-check-circle';
+                        break;
+                    case 'error':
+                        notification.classList.add('bg-danger', 'text-white');
+                        icon.className = 'mr-3 text-xl fa fa-exclamation-circle';
+                        break;
+                    case 'warning':
+                        notification.classList.add('bg-warning', 'text-white');
+                        icon.className = 'mr-3 text-xl fa fa-exclamation-triangle';
+                        break;
+                    case 'info':
+                        notification.classList.add('bg-primary', 'text-white');
+                        icon.className = 'mr-3 text-xl fa fa-info-circle';
+                        break;
+                    default:
+                        notification.classList.add('bg-primary', 'text-white');
+                        icon.className = 'mr-3 text-xl fa fa-info-circle';
+                    }
+
+                // 显示通知（移除hidden并重置位移）
+                notification.classList.remove('translate-x-full', 'hidden');
+                notification.classList.add('translate-x-0');
+
+                // 自动关闭通知
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-0');
+                    notification.classList.add('translate-x-full');
+                // 延迟后隐藏DOM，避免遮挡点击
+                    setTimeout(() => {
+                        notification.classList.add('hidden');
+                    }, 300);
+                }, 3000);
+            },
         };
 
         // 页面切换模块
