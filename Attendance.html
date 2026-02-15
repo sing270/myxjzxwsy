@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤管理系统</title>
+    <script src="xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="fontawesome-free-7.1.0-web/css/all.min.css">
+    <link rel="stylesheet" href="Attendance.css">
+    <script src="Attendance.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#file-upload" class="nav-link file-upload">文件上传</a></li>
+                <li><a href="#staff-upload" class="nav-link">职工信息</a></li>
+                <li><a href="#attendance-show" class="nav-link">信息展示</a></li>
+                <li><a href="#data-arrange" class="nav-link">整理记录</a></li>
+                <li class="relative-group">
+                    <a href="#dean-pages" class="nav-link">
+                        分管页面
+                        <i class="fa fa-chevron-down ml-1 text-xs transition-transform group-hover:rotate-180"></i>
+                    </a>
+                    <div>
+                        <a href="#dean-王雷" class="dean-link">王雷</a>
+                        <a href="#dean-李春娟" class="dean-link">李春娟</a>
+                        <a href="#dean-宋增信" class="dean-link">宋增信</a>
+                        <a href="#dean-徐伟" class="dean-link">徐伟</a>
+                        <a href="#dean-段海燕" class="dean-link">段海燕</a>
+                        <a href="#dean-财务" class="dean-link">财务</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="file-upload" class="page-section file-upload">
+            <div class="container">
+                <h2 class="title">
+                    <i class="fa fa-upload"></i>考勤文件上传
+                </h2>
+                <div class="drop-area" id="drop-area">
+                    <input type="file" id="attendance-file" class="file-input" accept=".txt,.xlsx,.csv">
+                    <i class="fa fa-file-text-o"></i>
+                    <p>点击或拖拽文件至此处上传</p>
+                    <p>支持 .txt、.xlsx、.csv 格式文件</p>
+                    <button type="button" id="select-file-btn" class="select-file-btn">
+                        选择文件
+                    </button>
+                </div>
+                <div id="file-info" class="file-info">
+                    <div class="file-info-card">
+                        <div class="file-info-left">
+                            <i class="fa fa-file-text-o"></i>
+                            <span id="file-name" class="file-name"></span>
+                        </div>
+                        <button type="button" id="remove-file" class="remove-file-btn">
+                            <i class="fa fa-times"></i>
+                        </button>+
+                    </div>
+                </div>
+                <div class="upload-confirm-wrap">
+                    <button type="button" id="upload-confirm" class="upload-confirm-btn">
+                        <i class="fa fa-check"></i>确认上传
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="staff-upload" class="page-section staff-upload">
+            <div class="container">
+                <h2 class="title">
+                    <i class="fa fa-solid fa-address-card"></i>职工信息上传
+                </h2>
+                <form id="staff-form" class="staff-form">
+                    <div class="form-group">
+                        <label for="staff-id" class="staff">工号 <span class="warring">*</span></label>
+                        <input type="text" id="staff-id" name="staff-id" class="staff-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="staff-name" class="staff">姓名 <span class="warring">*</span></label>
+                        <input type="text" id="staff-name" name="staff-name" class="staff-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="staff-department" class="staff">科室 <span class="warring">*</span></label>
+                        <select id="staff-department" name="staff-department" class="staff-input" required>
+                            <option value="">请选择科室</option>
+                            <option value="内科">内科</option>
+                            <option value="外科">外科</option>
+                            <option value="理疗">理疗</option>
+                            <option value="护理">护理</option>
+                            <option value="口腔">口腔</option>
+                            <option value="妇儿">妇儿</option>
+                            <option value="公卫">公卫</option>
+                            <option value="放射">放射</option>
+                            <option value="化验">化验</option>
+                            <option value="药房">药房</option>
+                            <option value="防疫">防疫</option>
+                            <option value="后勤">后勤</option>
+                            <option value="B超">B超</option>
+                            <option value="财务">财务</option>
+                            <option value="收费">收费</option>
+                            <option value="办公室">办公室</option>
+                            <option value="居民医保">居民医保</option>
+                            <option value="药库">药库</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="staff-status" class="staff">状态 <span class="warring">*</span></label>
+                        <select id="staff-status" name="staff-status" class="staff-input" required>
+                            <option value="">请选择状态</option>
+                            <option value="正常">正常</option>
+                            <option value="离退">离退</option>
+                            <option value="外勤">外勤</option>
+                            <option value="事假">事假</option>
+                            <option value="病假">病假</option>
+                            <option value="产假">产假</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="staff-dean" class="staff">分管 <span class="warring">*</span></label>
+                        <select id="staff-dean" name="staff-dean" class="staff-input" required>
+                            <option value="">请选择分管</option>
+                            <option value="王雷">王雷</option>
+                            <option value="李春娟">李春娟</option>
+                            <option value="宋增信">宋增信</option>
+                            <option value="徐伟">徐伟</option>
+                            <option value="段海燕">段海燕</option>
+                            <option value="财务">财务</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="staff-submit">
+                            <i class="fa fa-save mr-2"></i>保存职工信息
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="container">
+                <div class="staff-header">
+                    <h3 class="staff-title">职工信息管理</h3>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" id="staff-search" class="search-input" placeholder="搜索工号、姓名、科室、分管...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <label class="batch-upload-label">
+                            <i class="fa fa-upload"></i>
+                            <span>批量上传</span>
+                            <input type="file" id="staff-batch-upload" class="batch-upload-input" accept=".xlsx,.csv">
+                        </label>
+                        <button type="button" id="staff-clear-all" class="clear-all-btn">
+                            <i class="fa fa-trash-can"></i>清空所有信息
+                        </button>
+                        <button type="button" id="staff-export" class="export-btn">
+                            <i class="fa fa-download"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="staff-table">
+                        <thead>
+                            <tr class="table-header-row">
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>分管</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-table-body">
+                            <tr class="empty-row">
+                                <td colspan="6" class="empty-cell">暂无职工信息，请添加或上传数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="attendance-show" class="page-section attendance-show">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-table"></i>考勤信息展示
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" id="attendance-search" class="search-input" placeholder="搜索日期、工号、姓名、科室、分管...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="month-filter-wrapper">
+                            <input type="month" id="attendance-month-filter" class="month-filter-input">
+                        </div>
+                        <button type="button" id="attendance-export" class="export-btn">
+                            <i class="fa fa-download"></i>导出Excel
+                        </button>
+                        <button type="button" id="attendance-delete-month" class="delete-month-btn">
+                            <i class="fa fa-trash"></i>删除指定月份
+                        </button>
+                        <button type="button" id="attendance-add-blank" class="attendance-add-blank-btn">
+                            <i class="fa fa-plus"></i>增加空白表
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="attendance-table">
+                        <thead class="attendance-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>分管</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>考勤时间5</th>
+                                <th>考勤时间6</th>
+                                <th>考勤时间7</th>
+                                <th>考勤时间8</th>
+                                <th>考勤时间9</th>
+                                <th>考勤时间10</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body">
+                            <tr class="attendance-empty-row">
+                                <td colspan="17" class="attendance-empty-cell">暂无考勤信息，请添加空白表或上传考勤文件</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="data-arrange" class="page-section data-arrange">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-bar-chart"></i>数据整理记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" id="arrange-search" class="search-input" placeholder="搜索日期、工号、姓名、科室、分管...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" id="arrange-month-filter" class="month-filter-input">
+                        </div>
+                        <button type="button" id="arrange-export" class="export-btn">
+                            <i class="fa fa-download"></i>导出Excel
+                        </button>
+                        <button type="button" id="arrange-delete-month" class="delete-month-btn hidden">
+                            <i class="fa fa-trash"></i>删除指定月份
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>分管</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arrange-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="14" class="arrange-empty-cell">暂无整理数据，请先上传考勤文件</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-王雷" class="page-section dean-page" data-dean="王雷">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>王雷 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-李春娟" class="page-section dean-page" data-dean="李春娟">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>李春娟 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-宋增信" class="page-section dean-page" data-dean="宋增信">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>宋增信 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-徐伟" class="page-section dean-page" data-dean="徐伟">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>徐伟 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-段海燕" class="page-section dean-page" data-dean="段海燕">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>段海燕 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="dean-财务" class="page-section dean-page" data-dean="财务">
+            <div class="container">
+                <div class="staff-header">
+                    <h2 class="staff-title">
+                        <i class="fa fa-user-circle"></i>财务 - 考勤记录表
+                    </h2>
+                    <div class="header-actions">
+                        <div class="search-wrapper">
+                            <input type="text" class="dean-search" placeholder="搜索日期、工号、姓名、科室...">
+                            <i class="fa fa-search search-icon"></i>
+                        </div>
+                        <div class="relative">
+                            <input type="month" class="dean-month-filter">
+                        </div>
+                        <button type="button" class="dean-export">
+                            <i class="fa fa-download mr-2"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table cellpadding="0" cellspacing="0" class="arrange-table">
+                        <thead class="arrange-table-row">
+                            <tr>
+                                <th>工号</th>
+                                <th>姓名</th>
+                                <th>科室</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>考勤时间1</th>
+                                <th>考勤时间2</th>
+                                <th>考勤时间3</th>
+                                <th>考勤时间4</th>
+                                <th>规则内考勤</th>
+                                <th>规则外考勤</th>
+                                <th>班次</th>
+                                <th>存在问题</th>
+                            </tr>
+                        </thead>
+                        <tbody class="dean-table-body">
+                            <tr class="arrange-empty-row">
+                                <td colspan="11" class="arrange-empty-cell">暂无相关考勤数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="notification" class="notification">
+        <div id="notification-message" class="notification-message"></div>
+    </div>
+
+    <div id="edit-staff-modal" class="edit-staff-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">编辑职工信息</h3>
+                <button type="button" id="close-edit-modal" class="close-edit-modal">
+                    <i class="fa fa-xmark"></i>
+                </button>
+            </div>
+            <form id="edit-staff-form" class="edit-staff-form">
+                <input type="hidden" id="edit-staff-id" class="edit-staff-id">
+                <div class="form-group">
+                    <label for="edit-staff-name">姓名 <span class="warring">*</span></label>
+                    <input type="text" id="edit-staff-name" name="edit-staff-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-staff-department">科室 <span class="warring">*</span></label>
+                    <select id="edit-staff-department" name="edit-staff-department" required>
+                        <option value="">请选择科室</option>
+                        <option value="内科">内科</option>
+                        <option value="外科">外科</option>
+                        <option value="理疗">理疗</option>
+                        <option value="护理">护理</option>
+                        <option value="妇儿">妇儿</option>
+                        <option value="公卫">公卫</option>
+                        <option value="药房">药房</option>
+                        <option value="防疫">防疫</option>
+                        <option value="B超">B超</option>
+                        <option value="放射">放射</option>
+                        <option value="财务">财务</option>
+                        <option value="化验">化验</option>
+                        <option value="收费">收费</option>
+                        <option value="口腔">口腔</option>
+                        <option value="办公室">办公室</option>
+                        <option value="居民医保">居民医保</option>
+                        <option value="药库">药库</option>
+                        <option value="后勤">后勤</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-staff-status">状态 <span class="warring">*</span></label>
+                    <select id="edit-staff-status" name="edit-staff-status" required>
+                        <option value="">请选择状态</option>
+                        <option value="正常">正常</option>
+                        <option value="离退">离退</option>
+                        <option value="外勤">外勤</option>
+                        <option value="事假">事假</option>
+                        <option value="病假">病假</option>
+                        <option value="产假">产假</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-staff-dean">分管 <span class="warring">*</span></label>
+                    <select id="edit-staff-dean" name="edit-staff-dean" required>
+                        <option value="">请选择分管</option>
+                        <option value="王雷">王雷</option>
+                        <option value="李春娟">李春娟</option>
+                        <option value="宋增信">宋增信</option>
+                        <option value="徐伟">徐伟</option>
+                        <option value="段海燕">段海燕</option>
+                        <option value="财务">财务</option>
+                    </select>
+                </div>
+                <div class="form-group btn-group">
+                    <button type="button" id="cancel-edit" class="cancel-edit">取消</button>
+                    <button type="submit">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-attendance-modal" class="edit-attendance-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="model-title">编辑考勤信息</h3>
+                <button type="button" id="close-attendance-modal" class="close-attendance-modal">
+                    <i class="fa fa-xmark"></i>
+                </button>
+            </div>
+            <form id="edit-attendance-form" class="edit-attendance-form">
+                <input type="hidden" id="edit-attendance-record-id">
+
+                <div class="form-group">
+                    <label for="edit-attendance-id">工号</label>
+                    <input type="text" id="edit-attendance-id" class="edit-attendance-id" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-attendance-name">姓名</label>
+                    <input type="text" id="edit-attendance-name" class="edit-attendance-name" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-attendance-department">科室</label>
+                    <input type="text" id="edit-attendance-department" class="edit-attendance-department" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-attendance-dean">分管</label>
+                    <input type="text" id="edit-attendance-dean" class="edit-attendance-dean" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-attendance-date">日期 <span class="warring">*</span></label>
+                    <input type="date" id="edit-attendance-date" class="edit-attendance-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-attendance-status">状态</label>
+                    <input type="text" id="edit-attendance-status" class="edit-attendance-status" readonly>
+                </div>  
+
+                <div class="form-group time-group">
+                    <div>
+                        <label for="edit-attendance-time1">考勤时间1</label>
+                        <input type="time" id="edit-attendance-time1" class="edit-attendance-time1" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time2">考勤时间2</label>
+                        <input type="time" id="edit-attendance-time2" class="edit-attendance-time2" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time3">考勤时间3</label>
+                        <input type="time" id="edit-attendance-time3" class="edit-attendance-time3" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time4">考勤时间4</label>
+                        <input type="time" id="edit-attendance-time4" class="edit-attendance-time4" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time5">考勤时间5</label>
+                        <input type="time" id="edit-attendance-time5" class="edit-attendance-time5" step="1">
+                    </div>
+                </div>
+                
+                <div class="form-group time-group">
+                    <div>
+                        <label for="edit-attendance-time6">考勤时间6</label>
+                        <input type="time" id="edit-attendance-time6" class="edit-attendance-time6" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time7">考勤时间7</label>
+                        <input type="time" id="edit-attendance-time7" class="edit-attendance-time7" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time8">考勤时间8</label>
+                        <input type="time" id="edit-attendance-time8" class="edit-attendance-time8" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time9">考勤时间9</label>
+                        <input type="time" id="edit-attendance-time9" class="edit-attendance-time9" step="1">
+                    </div>
+                    <div>
+                        <label for="edit-attendance-time10">考勤时间10</label>
+                        <input type="time" id="edit-attendance-time10" class="edit-attendance-time10" step="1">
+                    </div>
+                </div>
+                
+                <div class="form-group btn-group">
+                    <button type="button" id="cancel-attendance-edit" class="cancel-attendance-edit">取消</button>
+                    <button type="submit">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2026 考勤管理系统 | 打造智能考勤，赋能高效管理</p>
+            <p>保留所有权利 | 技术维护：信息科</a></p>
+        </div>
+    </footer>
+</body>
+</html>
+
+
+
