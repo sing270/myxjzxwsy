@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            min-height: 8vh;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            padding: 0 100px;
+            font-size: 30px;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: clamp(1px, 5vw, 2.5px);
+        }
+        .title-model {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(to right, red, rgb(0, 99, 248));
+            background-clip: text;
+            gap: 20px;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            margin: 30px 30px;
+            padding: 2px 20px;
+            justify-content: center;
+        }
+        .nav-model {
+            background-color: white;
+            margin: 0px 30px;
+            transition: all 0.3s ease-in-out;
+            border-radius: 10px;
+            padding: 30px 100px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 100px;
+        }
+        .link-model {
+            padding: 25px 0px;
+            color: rgb(182, 27, 27);
+            text-align: center;
+            text-decoration: none;
+            font-size: 26px;
+            background-color: transparent;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            line-height: 0.7;
+        }
+        .link-model:hover {
+            background-color: rgba(182, 27, 27, 1);
+            color: white; 
+        }
+        .hidden {
+            display: none;
+        }
+        small {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-model">
+            <img src="YH.png" style="width: 50px; height: 50px;">
+            <h2><b>蒙阴县旧寨乡卫生院工具集合</b></h2>
+        </div>
+    </header>
+
+    <main>
+        <div class="nav-model">
+            <a href="https://sing270.github.io/myxjzxwsy/twbj.html" class="link-model"><b>图文编辑</b><br><small>微信公众号图文编辑生成图片</small></a>
+            <a href="https://sing270.github.io/myxjzxwsy/quchong.html" class="link-model"><b>表格去除</b><br><small>Excel表格去除重复值,筛选唯一值</small></a>
+            <a href="" class="link-model"><b>装机软件下载</b></a>
+            <a href="" class="link-model hidden"><b></b></a>
+        </div>        
+        <div class="nav-model">
+            <a href="" class="link-model hidden"><b></b></a>
+            <a href="" class="link-model hidden"><b></b></a>
+            <a href="" class="link-model hidden"><b></b></a>
+            <a href="" class="link-model hidden"><b></b></a>
+        </div>  
+    </main>
+</body>
+</html>
