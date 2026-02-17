@@ -1879,12 +1879,153 @@ const DeanPage = {
     }
 };
 
+const ViewAttendance = {
+    init() {
+        this.monthInput = document.getElementById('view-month-filter');
+        this.deptSelect = document.querySelector('#view-page .dep-sel select');
+        this.tbody = document.getElementById('viewAttendanceTbody');
+        this.dateHeaderTr = document.getElementById('viewDateHeaderTr'); 
+
+        if (!this.monthInput || !this.deptSelect || !this.tbody) return;
+        
+        const now = new Date();
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const defaultMonth = lastMonth.getFullYear() + '-' + (lastMonth.getMonth() + 1).toString().padStart(2, '0');
+        this.monthInput.value = defaultMonth;
+        
+        this.bindEvents();
+        this.renderTable();
+    },
+
+    bindEvents() {
+        this.monthInput.addEventListener('change', () => this.renderTable());
+        this.deptSelect.addEventListener('change', () => this.renderTable());
+        document.addEventListener('arrangedDataUpdated', () => this.renderTable());
+    },
+
+    renderTable() {
+        if (!this.monthInput || !this.deptSelect || !this.tbody) return;
+        
+        const selectedMonth = this.monthInput.value;
+        const selectedDept = this.deptSelect.value;
+        this.tbody.innerHTML = '';
+        this.renderDateHeader(selectedMonth);
+        const arrangedData = DataStore.getArrangedData();
+        const filteredData = arrangedData.filter(item => 
+            item.department === selectedDept && item.date.startsWith(selectedMonth)
+        );
+
+        if (filteredData.length === 0) {
+            this.tbody.innerHTML = `
+                <tr class="view-empty-row">
+                    <td colspan="32" class="view-empty-cell">
+                        暂无【${selectedDept}】${selectedMonth}月份的考勤数据
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const staffGroup = this.groupDataByStaff(filteredData);
+        Object.keys(staffGroup).forEach(staffName => {
+            const staffAttendance = staffGroup[staffName];
+            this.renderStaffRow(staffName, staffAttendance, selectedMonth);
+        });
+    },
+
+    renderDateHeader(selectedMonth) {
+        this.dateHeaderTr.innerHTML = '';
+        const nameTh = document.createElement('th');
+        nameTh.textContent = '姓名';
+        this.dateHeaderTr.appendChild(nameTh);
+        const [year, month] = selectedMonth.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let day = 1; day <= 31; day++) {
+            const dayTh = document.createElement('th');
+            dayTh.textContent = day;
+            if (day > daysInMonth) {
+                dayTh.style.color = '#f9fafb';
+                dayTh.style.pointerEvents = 'none';
+            }
+            this.dateHeaderTr.appendChild(dayTh);
+        }
+    },
+
+    groupDataByStaff(data) {
+        return data.reduce((group, item) => {
+            if (!group[item.name]) {
+                group[item.name] = [];
+            }
+            group[item.name].push(item);
+            return group;
+        }, {});
+    },
+
+    renderStaffRow(staffName, attendanceList, selectedMonth) {
+        const tr = document.createElement('tr');
+        tr.className = 'view-table-row';
+        const nameTd = document.createElement('td');
+        nameTd.textContent = staffName;
+        tr.appendChild(nameTd);
+
+        const [year, month] = selectedMonth.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        for (let day = 1; day <= 31; day++) {
+            const td = document.createElement('td');
+            if (day > daysInMonth) {
+                td.style.background = 'white';
+                td.style.color = '#ddd';
+                tr.appendChild(td);
+                continue;
+            }
+            const currentDate = `${selectedMonth}-${day.toString().padStart(2, '0')}`;
+            const dayData = attendanceList.find(item => item.date === currentDate) || { sa: '', problems: '' };
+            const { statusClass, statusText } = this.getAttendanceStatus(dayData.sa, dayData.problems);
+            td.className = statusClass;
+            td.textContent = statusText;
+            tr.appendChild(td);
+        }
+
+        this.tbody.appendChild(tr);
+    },
+
+    getAttendanceStatus(shiftType, problem) {
+        if (shiftType === '夜班') {
+            return { statusClass: 'att-status-night', statusText: '夜' };
+        }
+        else if (shiftType === '下夜班') {
+            return { statusClass: 'att-status-next', statusText: '下' };
+        }
+        else {
+            if (problem === '全天未考勤') {
+                return { statusClass: 'att-status-absent', statusText: '休' };
+            }
+            else if (problem.includes('上午未考勤') || problem.includes('下午未考勤')) {
+                return { statusClass: 'att-status-half', statusText: '半' };
+            }
+            else {
+                return { statusClass: 'att-status-normal', statusText: '√' };
+            }
+        }
+    }
+};
+
+
 window.StaffManager = StaffManager;
 window.AttendanceManager = AttendanceManager;
 window.DeanPage = DeanPage;
+window.ViewAttendance = ViewAttendance;
 
 document.addEventListener('DOMContentLoaded', () => {
     PageSwitcher.init();
     StaffManager.init();
     AttendanceManager.init();
+    ViewAttendance.init();
+
+    const originalArrange = AttendanceManager.arrangeAttendanceData;
+    AttendanceManager.arrangeAttendanceData = function() {
+        originalArrange.call(this);
+        document.dispatchEvent(new CustomEvent('arrangedDataUpdated'));
+    };
 });
